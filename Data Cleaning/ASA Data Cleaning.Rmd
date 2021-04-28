@@ -4,4 +4,34 @@ author: "wr9450"
 date: "28/04/2021"
 output: html_document
 ---
+```{r}
+library(tidyverse)
+```
+
+
+
+```{r}
+#Import Data
+CA <- read_csv("../Source Data/CA-Data/ca.csv")
+DE <- read_csv("../Source Data/DE-Data/de.csv")
+UK <- read_csv("../Source Data/UK-Data/uk.csv")
+US18 <- read_csv("../Source Data/US-Data/us_18Q1.csv")
+US19 <- read_csv("../Source Data/US-Data/nmurx_us_19Q1.csv")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
