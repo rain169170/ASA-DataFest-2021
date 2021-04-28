@@ -1,0 +1,147 @@
+---
+title: "Datafest-CA"
+author: "Ting Wang"
+date: '2021-04-28'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dbplyr)
+library(tidyverse)
+library(readxl)
+library(lme4)
+```
+
+```{r,message=FALSE}
+dataca <- read_csv("ca.csv")
+attach(dataca)
+head(dataca)
+```
+```{r}
+useFENT <- na.omit(dataca$FENT_NMU) 
+propFENT <- sum(useFENT == "1")/length(useFENT)
+
+useBUP <- na.omit(dataca$BUP_NMU) 
+propBUP <- sum(useBUP == "1")/length(useBUP)
+
+useMETH <- na.omit(dataca$METH_NMU) 
+propMETH <- sum(useMETH == "1")/length(useMETH)
+
+useMORPH <- na.omit(dataca$MORPH_NMU) 
+propMORPH <- sum(useMORPH == "1")/length(useMORPH)
+
+useOXY <- na.omit(dataca$OXY_NMU) 
+propOXY <- sum(useOXY == "1")/length(useOXY)
+
+useOXYM <- na.omit(dataca$OXYM_NMU) 
+propOXYM <- sum(useOXYM == "1")/length(useOXYM)
+
+useTRAM <- na.omit(dataca$TRAM_NMU) 
+propTRAM <- sum(useTRAM == "1")/length(useTRAM)
+
+useTAP <- na.omit(dataca$TAP_NMU) 
+propTAP <- sum(useTAP == "1")/length(useTAP)
+
+useCOD <- na.omit(dataca$COD_NMU) 
+propCOD <- sum(useCOD == "1")/length(useCOD)
+
+useCOTC <- na.omit(dataca$COTC_NMU) 
+propCOTC <- sum(useCOTC == "1")/length(useCOTC)
+
+useHYD <- na.omit(dataca$HYD_NMU) 
+propHYD <- sum(useHYD == "1")/length(useHYD)
+
+useHYDM <- na.omit(dataca$HYDM_NMU) 
+propHYDM <- sum(useHYDM == "1")/length(useHYDM)
+
+useSUF <- na.omit(dataca$SUF_NMU) 
+propSUF <- sum(useSUF == "1")/length(useSUF)
+
+useSTIM <- na.omit(dataca$STIM_NMU) 
+propSTIM <- sum(useSTIM == "1")/length(useSTIM)
+
+useBENZ <- na.omit(dataca$BENZ_NMU) 
+propBENZ <- sum(useBENZ == "1")/length(useBENZ)
+
+useTHC <- na.omit(dataca$THC_NMU) 
+propTHC <- sum(useTHC == "1")/length(useTHC)
+
+prop <- c(propFENT, propBUP, propMETH, propMORPH, propOXY, propOXYM, propTRAM, propTAP, propCOD, propCOTC, propHYD, propHYDM, propSUF, propSTIM, propBENZ, propTHC)
+
+drugs <- c('FENT', 'BUP','METH', 'MORPH', 'OXY', 'OXYM', 'TRAM', 'TAP', 'COD', 'COTC', 'HYD', 'HYDM', 'SUF', 'STIM', 'BENZ', 'THC')  
+
+ 
+prop_misuse <- data.frame(drugs,prop)
+
+plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) +
+  geom_bar(stat="identity", width=0.5) + 
+  labs(title="Proportion of Misuse by Drug Type in Canada",
+        x ="Drug Type", y = "Proportion of Misuse")
+
+plot_misuse
+
+```
+
+```{r}
+dataca$FENT_NMU[is.na(dataca$FENT_NMU)] <- 0
+dataca$BUP_NMU[is.na(dataca$BUP_NMU)] <- 0
+dataca$METH_NMU[is.na(dataca$METH_NMU)] <- 0
+dataca$MORPH_NMU[is.na(dataca$MORPH_NMU)] <- 0
+dataca$OXY_NMU[is.na(dataca$OXY_NMU)] <- 0
+dataca$OXYM_NMU[is.na(dataca$OXYM_NMU)] <- 0
+dataca$TRAM_NMU[is.na(dataca$TRAM_NMU)] <- 0
+dataca$TAP_NMU[is.na(dataca$TAP_NMU)] <- 0
+dataca$COD_NMU[is.na(dataca$COD_NMU)] <- 0
+dataca$COTC_NMU[is.na(dataca$COTC_NMU)] <- 0
+dataca$HYD_NMU[is.na(dataca$HYD_NMU)] <- 0
+dataca$HYDM_NMU[is.na(dataca$HYDM_NMU)] <- 0
+dataca$SUF_NMU[is.na(dataca$SUF_NMU)] <- 0
+dataca$STIM_NMU[is.na(dataca$STIM_NMU)] <- 0
+dataca$BENZ_NMU[is.na(dataca$BENZ_NMU)] <- 0
+dataca$THC_NMU[is.na(dataca$THC_NMU)] <- 0
+
+dataca <- dataca %>%
+  mutate(total_misuse =FENT_NMU + BUP_NMU + METH_NMU + MORPH_NMU + OXY_NMU + OXYM_NMU + TRAM_NMU + TAP_NMU + COD_NMU + COTC_NMU + HYD_NMU + HYDM_NMU + SUF_NMU + STIM_NMU +  BENZ_NMU + THC_NMU)
+hist(dataca$total_misuse)
+boxplot(dataca$total_misuse)
+summary(dataca$total_misuse)
+```
+
+```{r}
+
+abor <- as.factor(DEM_ABOR)
+location <- as.factor(DEM_LOCATION)
+marital <- as.factor(DEM_MARITAL)
+income <- as.factor(DEM_INCOME)
+edu <- as.factor(DEM_EDU)
+
+
+model <- glm(total_misuse ~ DEM_AGE10 + abor + location + marital + income + edu, family=poisson, data = dataca)
+summary(model)
+#sig var include age, abor, location (all besides NB, Nunavut and Northwest), marital (common law and seperated), income (160,000 or more and refer not to say), edu (trade and uni below bachelor)
+
+#higher age, less misuse 
+#being abor, more misuse 
+#locations are sig, baseline is New found land and labrador 
+#married is the lowest misuse, other types increase misuse 
+#higher income, less misuse 
+#higher edu, generally less misuse, most misuse for University certificate or diploma below the bachelor's level
+```
+```{r}
+alcohol <- as.factor(ALC_FREQ_USE)
+cig <- as.factor(TOB_FREQ_USE)
+other_drug <- as.factor(OTH_RX_DRUG_USE)
+
+model2 <- glm(total_misuse ~ alcohol + cig + other_drug, family=poisson, data = dataca)
+summary(model2)
+#all significant
+```
+
+
+
+
+
+
+
+
