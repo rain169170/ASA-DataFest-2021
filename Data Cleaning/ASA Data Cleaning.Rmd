@@ -20,9 +20,14 @@ US19 <- read_csv("../Source Data/US-Data/nmurx_us_19Q1.csv")
 ```
 
 
-
-
-
+```{r}
+#Export cleaned data
+write.csv(CA, "./CA_Clean.csv")
+write.csv(DE, "./DE_Clean.csv")
+write.csv(UK, "./UK_Clean.csv")
+write.csv(US18, "./US18_Clean.csv")
+write.csv(US19, "./US19_Clean.csv")
+```
 
 
 

@@ -14,10 +14,12 @@ library(lme4)
 ```
 
 ```{r,message=FALSE}
-dataca <- read_csv("ca.csv")
+dataca <- read_csv("./Data Cleaning/CA_Clean.csv")
 attach(dataca)
 head(dataca)
 ```
+## Drug Misuse Visualization
+
 ```{r}
 useFENT <- na.omit(dataca$FENT_NMU) 
 propFENT <- sum(useFENT == "1")/length(useFENT)
@@ -80,7 +82,6 @@ plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) +
         x ="Drug Type", y = "Proportion of Misuse")
 
 plot_misuse
-
 ```
 
 ```{r}
@@ -109,7 +110,6 @@ summary(dataca$total_misuse)
 ```
 
 ```{r}
-
 abor <- as.factor(DEM_ABOR)
 location <- as.factor(DEM_LOCATION)
 marital <- as.factor(DEM_MARITAL)
