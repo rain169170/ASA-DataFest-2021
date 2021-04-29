@@ -1,0 +1,193 @@
+---
+title: "Datafest-Uk"
+author: "Ting Wang"
+date: '2021-04-29'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dbplyr)
+library(tidyverse)
+library(readxl)
+library(lme4)
+library(gtsummary)
+library(caret)
+library(e1071)
+library(randomForest)
+library(ROCR)
+```
+
+##data
+```{r,message=FALSE}
+datauk <- read_csv("uk.csv")
+attach(datauk)
+head(datauk)
+```
+
+```{r}
+useFENT <- na.omit(datauk$FENT_NMU) 
+propFENT <- sum(useFENT == "1")/length(useFENT)
+
+useBUP <- na.omit(datauk$BUP_NMU) 
+propBUP <- sum(useBUP == "1")/length(useBUP)
+
+useMETH <- na.omit(datauk$METH_NMU) 
+propMETH <- sum(useMETH == "1")/length(useMETH)
+
+useMORPH <- na.omit(datauk$MORPH_NMU) 
+propMORPH <- sum(useMORPH == "1")/length(useMORPH)
+
+useOXY <- na.omit(datauk$OXY_NMU) 
+propOXY <- sum(useOXY == "1")/length(useOXY)
+
+useTRAM <- na.omit(datauk$TRAM_NMU) 
+propTRAM <- sum(useTRAM == "1")/length(useTRAM)
+
+useTAP <- na.omit(datauk$TAP_NMU) 
+propTAP <- sum(useTAP == "1")/length(useTAP)
+
+useCOD <- na.omit(datauk$COD_NMU) 
+propCOD <- sum(useCOD == "1")/length(useCOD)
+
+useHYDM <- na.omit(datauk$HYDM_NMU) 
+propHYDM <- sum(useHYDM == "1")/length(useHYDM)
+
+useSUF <- na.omit(datauk$SUF_NMU) 
+propSUF <- sum(useSUF == "1")/length(useSUF)
+
+useSTIM <- na.omit(datauk$STIM_NMU) 
+propSTIM <- sum(useSTIM == "1")/length(useSTIM)
+
+useBENZ <- na.omit(datauk$BENZ_NMU) 
+propBENZ <- sum(useBENZ == "1")/length(useBENZ)
+
+useTHC <- na.omit(datauk$THC_NMU) 
+propTHC <- sum(useTHC == "1")/length(useTHC)
+
+useDOTC <- na.omit(datauk$DOTC_NMU ) 
+propDOTC <- sum(useDOTC == "1")/length(useDOTC)
+
+useDEX <- na.omit(datauk$DEX_NMU) 
+propDEX <- sum(useDEX == "1")/length(useDEX)
+
+useDIPH <- na.omit(datauk$DIPH_NMU) 
+propDIPH <- sum(useDIPH == "1")/length(useDIPH)
+
+useLOP <- na.omit(datauk$LOP_NMU) 
+propLOP <- sum(useLOP == "1")/length(useLOP)
+
+
+prop <- c(propFENT, propBUP, propMETH, propMORPH, propOXY, propTRAM, propTAP, propCOD, propHYDM, propSUF, propSTIM, propBENZ, propTHC, propDOTC, propDEX, propDIPH, propLOP)
+
+drugs <- c('FENT', 'BUP','METH', 'MORPH', 'OXY', 'TRAM', 'TAP', 'COD', 'HYDM', 'SUF', 'STIM', 'BENZ', 'THC','DOTC','DEX','DIPH','LOP')  
+
+ 
+prop_misuse <- data.frame(drugs,prop)
+
+plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) +
+  geom_bar(stat="identity", width=0.5) + 
+  labs(title="Proportion of Misuse by Drug Type in UK",
+        x ="Drug Type", y = "Proportion of Misuse")
+
+plot_misuse
+```
+
+
+```{r}
+datauk$FENT_NMU[is.na(datauk$FENT_NMU)] <- 0
+datauk$BUP_NMU[is.na(datauk$BUP_NMU)] <- 0
+datauk$METH_NMU[is.na(datauk$METH_NMU)] <- 0
+datauk$MORPH_NMU[is.na(datauk$MORPH_NMU)] <- 0
+datauk$OXY_NMU[is.na(datauk$OXY_NMU)] <- 0
+datauk$TRAM_NMU[is.na(datauk$TRAM_NMU)] <- 0
+datauk$TAP_NMU[is.na(datauk$TAP_NMU)] <- 0
+datauk$COD_NMU[is.na(datauk$COD_NMU)] <- 0
+datauk$HYDM_NMU[is.na(datauk$HYDM_NMU)] <- 0
+datauk$SUF_NMU[is.na(datauk$SUF_NMU)] <- 0
+datauk$STIM_NMU[is.na(datauk$STIM_NMU)] <- 0
+datauk$BENZ_NMU[is.na(datauk$BENZ_NMU)] <- 0
+datauk$THC_NMU[is.na(datauk$THC_NMU)] <- 0
+datauk$DOTC_NMU[is.na(datauk$DOTC_NMU)] <- 0
+datauk$DEX_NMU[is.na(datauk$DEX_NMU)] <- 0
+datauk$DIPH_NMU[is.na(datauk$DIPH_NMU)] <- 0
+datauk$LOP_NMU[is.na(datauk$LOP_NMU)] <- 0
+
+datauk <- datauk %>%
+  mutate(total_misuse =FENT_NMU + BUP_NMU + METH_NMU + MORPH_NMU + OXY_NMU +  TRAM_NMU + TAP_NMU + COD_NMU + HYDM_NMU + SUF_NMU + STIM_NMU +  BENZ_NMU + THC_NMU + DOTC_NMU + DEX_NMU + DIPH_NMU + LOP_NMU)
+hist(datauk$total_misuse)
+boxplot(datauk$total_misuse)
+summary(datauk$total_misuse)
+```
+
+
+##modelling
+```{r}
+datauk$DEM_GENDER <- as.factor(datauk$DEM_GENDER)
+datauk$DEM_ETHNIC <- as.factor(datauk$DEM_ETHNIC)
+datauk$DEM_RELIGION <- as.factor(datauk$DEM_RELIGION)
+datauk$DEM_LOCATION <- as.factor(datauk$DEM_LOCATION)
+datauk$DEM_MARITAL <- as.factor(datauk$DEM_MARITAL)
+datauk$DEM_INCOME <- as.factor(datauk$DEM_INCOME)
+datauk$DEM_EDU <- as.factor(datauk$DEM_EDU)
+datauk$ALC_USE <- as.factor(datauk$ALC_USE)
+datauk$TOB_USE <- as.factor(datauk$TOB_USE)
+datauk$OTH_RX_DRUG_USE <- as.factor(datauk$OTH_RX_DRUG_USE)
+
+
+model1 <- glm(total_misuse ~ DEM_GENDER + DEM_ETHNIC + DEM_RELIGION + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_USE + TOB_USE + OTH_RX_DRUG_USE, family=poisson, data = datauk)
+summary(model1)
+#all sig
+```
+```{r}
+model2 <- glm(total_misuse ~ DEM_PREG + DEM_HEALTH + HELP_SUB_USE + DRSHOP_NMU + DRSHOP_SELL + HPC_USE + HPC_SELL, family=poisson, data = datauk)
+summary(model2)
+#help sub and two uses sig
+```
+```{r}
+model3 <- glm(total_misuse ~ PAIN_CHRONIC + PAIN_ACUTE + MENT_ANX + MENT_ADHD + MENT_AUT + MENT_BIP + MENT_BPD + MENT_DEP + MENT_EAT + MENT_OCD + MENT_PANIC + MENT_PPD + MENT_PTSD + MENT_SCH + MENT_OTH + MENT_NONE, family=poisson, data = datauk)
+summary(model3)
+```
+##random forest
+```{r}
+datauk <- datauk%>% mutate(has_misuse = ifelse(total_misuse >= 1, 1, 0))
+datauk$has_misuse <- as.factor(datauk$has_misuse)
+
+# 80% train 20% test
+smp_size <- floor(0.8 * nrow(datauk))
+#set seed
+set.seed(1234)
+train_ind <- sample(seq_len(nrow(datauk)), size = smp_size)
+
+train <- datauk[train_ind, ]
+test <- datauk[-train_ind, ]
+```
+
+```{r}
+set.seed(1234)
+rf_uk <-randomForest(has_misuse~ DEM_GENDER + DEM_AGE10 + DEM_ETHNIC + DEM_RELIGION + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_USE + TOB_USE + OTH_RX_DRUG_USE + HELP_SUB_USE + PAIN_CHRONIC + PAIN_ACUTE + MENT_NONE, data=train, ntree=500) 
+ 
+print(rf_uk)
+importance(rf_uk)
+varImpPlot(rf_uk)
+```
+
+```{r}
+pred1=predict(rf_uk,type = "prob")
+perf = prediction(pred1[,2], train$has_misuse)
+# 1. Area under curve
+auc = performance(perf, "auc")
+#auc
+# 2. True Positive and Negative Rate
+pred3 = performance(perf, "tpr","fpr")
+# 3. Plot the ROC curve
+plot(pred3,main="ROC Curve for Random Forest",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=2,col="gray")
+
+pred <- predict(rf_uk, newdata=test)
+confusionMatrix(pred,test$has_misuse)
+```
+
+
+
+
