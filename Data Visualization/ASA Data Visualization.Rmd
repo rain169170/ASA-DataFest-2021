@@ -1,0 +1,203 @@
+---
+title: "ASA Data Visualization"
+author: "wr9450"
+date: "28/04/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dbplyr)
+library(tidyverse)
+library(readxl)
+library(cowplot)
+library(gtsummary)
+```
+
+```{r,message=FALSE}
+dataca <- read_csv("../Data Cleaning/CA_Clean.csv")
+attach(dataca)
+head(dataca)
+```
+
+## Drug Misuse Visualization
+
+```{r}
+useFENT <- na.omit(dataca$FENT_NMU) 
+propFENT <- sum(useFENT == "1")/length(useFENT)
+
+useBUP <- na.omit(dataca$BUP_NMU) 
+propBUP <- sum(useBUP == "1")/length(useBUP)
+
+useMETH <- na.omit(dataca$METH_NMU) 
+propMETH <- sum(useMETH == "1")/length(useMETH)
+
+useMORPH <- na.omit(dataca$MORPH_NMU) 
+propMORPH <- sum(useMORPH == "1")/length(useMORPH)
+
+useOXY <- na.omit(dataca$OXY_NMU) 
+propOXY <- sum(useOXY == "1")/length(useOXY)
+
+useOXYM <- na.omit(dataca$OXYM_NMU) 
+propOXYM <- sum(useOXYM == "1")/length(useOXYM)
+
+useTRAM <- na.omit(dataca$TRAM_NMU) 
+propTRAM <- sum(useTRAM == "1")/length(useTRAM)
+
+useTAP <- na.omit(dataca$TAP_NMU) 
+propTAP <- sum(useTAP == "1")/length(useTAP)
+
+useCOD <- na.omit(dataca$COD_NMU) 
+propCOD <- sum(useCOD == "1")/length(useCOD)
+
+useCOTC <- na.omit(dataca$COTC_NMU) 
+propCOTC <- sum(useCOTC == "1")/length(useCOTC)
+
+useHYD <- na.omit(dataca$HYD_NMU) 
+propHYD <- sum(useHYD == "1")/length(useHYD)
+
+useHYDM <- na.omit(dataca$HYDM_NMU) 
+propHYDM <- sum(useHYDM == "1")/length(useHYDM)
+
+useSUF <- na.omit(dataca$SUF_NMU) 
+propSUF <- sum(useSUF == "1")/length(useSUF)
+
+useSTIM <- na.omit(dataca$STIM_NMU) 
+propSTIM <- sum(useSTIM == "1")/length(useSTIM)
+
+useBENZ <- na.omit(dataca$BENZ_NMU) 
+propBENZ <- sum(useBENZ == "1")/length(useBENZ)
+
+useTHC <- na.omit(dataca$THC_NMU) 
+propTHC <- sum(useTHC == "1")/length(useTHC)
+
+prop <- c(propFENT, propBUP, propMETH, propMORPH, propOXY, propOXYM, propTRAM, propTAP, propCOD, propCOTC, propHYD, propHYDM, propSUF, propSTIM, propBENZ, propTHC)
+
+drugs <- c('FENT', 'BUP','METH', 'MORPH', 'OXY', 'OXYM', 'TRAM', 'TAP', 'COD', 'COTC', 'HYD', 'HYDM', 'SUF', 'STIM', 'BENZ', 'THC')  
+
+ 
+prop_misuse <- data.frame(drugs,prop)
+
+plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) +
+  geom_bar(stat="identity", width=0.5) + 
+  labs(title="Proportion of Misuse by Drug Type in Canada",
+        x ="Drug Type", y = "Proportion of Misuse")
+
+plot_misuse
+ggsave("Proportion of misuse by drug type in Canada.png", plot_misuse)
+```
+
+```{r}
+
+hist(dataca$total_misuse)
+boxplot(dataca$total_misuse)
+```
+
+
+```{r}
+abor <- as.factor(DEM_ABOR)
+location <- as.factor(DEM_LOCATION)
+marital <- as.factor(DEM_MARITAL)
+
+
+
+locationf <- dataca %>% filter(DEM_GENDER == "Female")  %>%
+  ggplot(aes(x=as.factor(DEM_LOCATION), y=total_misuse))+
+  geom_point(alpha = 0.1, size = 7, color = "chocolate2")+
+  xlab("current location") + ylim(0, 15) +
+  theme_light() +ggtitle("Total Misuse by location for Female")
+
+locationm <- dataca %>% filter(DEM_GENDER == "Male")  %>%
+  ggplot(aes(x=as.factor(DEM_LOCATION), y=total_misuse))+
+  geom_point(alpha = 0.1, size = 7, color = "steelblue")+ 
+  xlab("current location") +
+  theme_light()+ggtitle("Total Misuse by location for Male")
+plot_grid(locationf, locationm)
+
+dataca %>% 
+  ggplot(aes(x=location, y=total_misuse))+
+  geom_point(alpha = 0.5, size = 7, colour = "chocolate")+
+  theme_light()
+
+agef <- dataca %>% filter(DEM_GENDER == "Female") %>%
+  ggplot(aes(x=as.factor(DEM_AGE10), y=total_misuse))+
+  geom_point(alpha = 0.08, size = 7, color = "chocolate2")+ 
+  ggtitle("Total Misuse by age for Female") + ylim(0, 15)+ xlab("Age Group") +
+  theme_light()
+agem <- dataca %>% filter(DEM_GENDER == "Male") %>%
+  ggplot(aes(x=as.factor(DEM_AGE10), y=total_misuse))+
+  geom_point(alpha = 0.08, size = 7, color = "steelblue")+ 
+  ggtitle("Total Misuse by age for Male") + xlab("Age Group") +
+  theme_light()
+plot_grid(agef, agem)
+
+eduf<- dataca %>% filter(DEM_GENDER == "Female") %>%
+  ggplot(aes(x=DEM_EDU, y=total_misuse))+
+  geom_point(alpha = 0.1, size = 7, color = "chocolate2")+ ylim(0, 15) +
+  ggtitle("Total Misuse by Education Level for Female") + xlab("Education Level")+
+  theme_light()
+edum<- dataca %>% filter(DEM_GENDER == "Male") %>%
+  ggplot(aes(x=DEM_EDU, y=total_misuse))+
+  geom_point(alpha = 0.1, size = 7, color = "steelblue")+ ylim(0, 15) +
+  ggtitle("Total Misuse by Education Level for Male") + xlab("Education Level")+
+  theme_light()
+plot_grid(eduf, edum)
+  
+incomef <- dataca %>% filter(DEM_GENDER == "Female") %>%
+  ggplot(aes(x=DEM_INCOME, y=total_misuse))+ ylim(0, 15) +
+  geom_point(alpha = 0.1, size = 7, color = "chocolate2")+
+  ggtitle("Total Misuse by income for Female") + xlab("Income")+
+  theme_light()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+incomem <- dataca %>% filter(DEM_GENDER == "Male") %>%
+  ggplot(aes(x=DEM_INCOME, y=total_misuse))+ ylim(0, 15) +
+  geom_point(alpha = 0.1, size = 7, color = "steelblue")+
+  ggtitle("Total Misuse by income for Male") + xlab("Income")+
+  theme_light()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot_grid(incomef, incomem)
+```
+
+```{r}
+dataca%>%
+  select(DEM_AGE10,DEM_GENDER)%>%
+  tbl_summary(by=DEM_GENDER)%>%
+  modify_header(label ~ "**Variable**")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

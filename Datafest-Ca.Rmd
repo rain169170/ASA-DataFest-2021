@@ -18,71 +18,7 @@ dataca <- read_csv("./Data Cleaning/CA_Clean.csv")
 attach(dataca)
 head(dataca)
 ```
-## Drug Misuse Visualization
 
-```{r}
-useFENT <- na.omit(dataca$FENT_NMU) 
-propFENT <- sum(useFENT == "1")/length(useFENT)
-
-useBUP <- na.omit(dataca$BUP_NMU) 
-propBUP <- sum(useBUP == "1")/length(useBUP)
-
-useMETH <- na.omit(dataca$METH_NMU) 
-propMETH <- sum(useMETH == "1")/length(useMETH)
-
-useMORPH <- na.omit(dataca$MORPH_NMU) 
-propMORPH <- sum(useMORPH == "1")/length(useMORPH)
-
-useOXY <- na.omit(dataca$OXY_NMU) 
-propOXY <- sum(useOXY == "1")/length(useOXY)
-
-useOXYM <- na.omit(dataca$OXYM_NMU) 
-propOXYM <- sum(useOXYM == "1")/length(useOXYM)
-
-useTRAM <- na.omit(dataca$TRAM_NMU) 
-propTRAM <- sum(useTRAM == "1")/length(useTRAM)
-
-useTAP <- na.omit(dataca$TAP_NMU) 
-propTAP <- sum(useTAP == "1")/length(useTAP)
-
-useCOD <- na.omit(dataca$COD_NMU) 
-propCOD <- sum(useCOD == "1")/length(useCOD)
-
-useCOTC <- na.omit(dataca$COTC_NMU) 
-propCOTC <- sum(useCOTC == "1")/length(useCOTC)
-
-useHYD <- na.omit(dataca$HYD_NMU) 
-propHYD <- sum(useHYD == "1")/length(useHYD)
-
-useHYDM <- na.omit(dataca$HYDM_NMU) 
-propHYDM <- sum(useHYDM == "1")/length(useHYDM)
-
-useSUF <- na.omit(dataca$SUF_NMU) 
-propSUF <- sum(useSUF == "1")/length(useSUF)
-
-useSTIM <- na.omit(dataca$STIM_NMU) 
-propSTIM <- sum(useSTIM == "1")/length(useSTIM)
-
-useBENZ <- na.omit(dataca$BENZ_NMU) 
-propBENZ <- sum(useBENZ == "1")/length(useBENZ)
-
-useTHC <- na.omit(dataca$THC_NMU) 
-propTHC <- sum(useTHC == "1")/length(useTHC)
-
-prop <- c(propFENT, propBUP, propMETH, propMORPH, propOXY, propOXYM, propTRAM, propTAP, propCOD, propCOTC, propHYD, propHYDM, propSUF, propSTIM, propBENZ, propTHC)
-
-drugs <- c('FENT', 'BUP','METH', 'MORPH', 'OXY', 'OXYM', 'TRAM', 'TAP', 'COD', 'COTC', 'HYD', 'HYDM', 'SUF', 'STIM', 'BENZ', 'THC')  
-
- 
-prop_misuse <- data.frame(drugs,prop)
-
-plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) +
-  geom_bar(stat="identity", width=0.5) + 
-  labs(title="Proportion of Misuse by Drug Type in Canada",
-        x ="Drug Type", y = "Proportion of Misuse")
-
-plot_misuse
-```
 
 ```{r}
 dataca$FENT_NMU[is.na(dataca$FENT_NMU)] <- 0

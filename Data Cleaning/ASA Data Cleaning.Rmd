@@ -12,21 +12,112 @@ library(tidyverse)
 
 ```{r}
 #Import Data
-CA <- read_csv("../Source Data/CA-Data/ca.csv")
-DE <- read_csv("../Source Data/DE-Data/de.csv")
-UK <- read_csv("../Source Data/UK-Data/uk.csv")
-US18 <- read_csv("../Source Data/US-Data/us_18Q1.csv")
-US19 <- read_csv("../Source Data/US-Data/nmurx_us_19Q1.csv")
+dataca <- read_csv("../Source Data/CA-Data/ca.csv")
+datade <- read_csv("../Source Data/DE-Data/de.csv")
+datauk <- read_csv("../Source Data/UK-Data/uk.csv")
+dataus18 <- read_csv("../Source Data/US-Data/us_18Q1.csv")
+dataus19 <- read_csv("../Source Data/US-Data/nmurx_us_19Q1.csv")
+```
+
+```{r}
+dataca
+```
+
+```{r}
+# Calculate total number of misused drugs for all 16 drugs for each participant
+# Stored in variable total_misuse
+dataca$FENT_NMU[is.na(dataca$FENT_NMU)] <- 0
+dataca$BUP_NMU[is.na(dataca$BUP_NMU)] <- 0
+dataca$METH_NMU[is.na(dataca$METH_NMU)] <- 0
+dataca$MORPH_NMU[is.na(dataca$MORPH_NMU)] <- 0
+dataca$OXY_NMU[is.na(dataca$OXY_NMU)] <- 0
+dataca$OXYM_NMU[is.na(dataca$OXYM_NMU)] <- 0
+dataca$TRAM_NMU[is.na(dataca$TRAM_NMU)] <- 0
+dataca$TAP_NMU[is.na(dataca$TAP_NMU)] <- 0
+dataca$COD_NMU[is.na(dataca$COD_NMU)] <- 0
+dataca$COTC_NMU[is.na(dataca$COTC_NMU)] <- 0
+dataca$HYD_NMU[is.na(dataca$HYD_NMU)] <- 0
+dataca$HYDM_NMU[is.na(dataca$HYDM_NMU)] <- 0
+dataca$SUF_NMU[is.na(dataca$SUF_NMU)] <- 0
+dataca$STIM_NMU[is.na(dataca$STIM_NMU)] <- 0
+dataca$BENZ_NMU[is.na(dataca$BENZ_NMU)] <- 0
+dataca$THC_NMU[is.na(dataca$THC_NMU)] <- 0
+
+dataca <- dataca %>%
+  mutate(total_misuse =FENT_NMU + BUP_NMU + METH_NMU + MORPH_NMU + OXY_NMU + OXYM_NMU + TRAM_NMU + TAP_NMU + COD_NMU + COTC_NMU + HYD_NMU + HYDM_NMU + SUF_NMU + STIM_NMU +  BENZ_NMU + THC_NMU)
+```
+
+```{r}
+table(dataca$DEM_GENDER)
+```
+
+```{r}
+# Label gender based on the given number in the source data
+dataca$DEM_GENDER[dataca$DEM_GENDER == 1] <- "Male"
+dataca$DEM_GENDER[dataca$DEM_GENDER == 2] <- "Female"
+
+# Label location based on the survey
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 1] <- "NL"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 2] <- "NS"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 3] <- "PE"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 4] <- "NB"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 5] <- "QC"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 6] <- "ON"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 7] <- "MB"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 8] <- "SK"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 9] <- "AB"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 10] <- "BC"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 11] <- "YT"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 12] <- "NU"
+dataca$DEM_LOCATION[dataca$DEM_LOCATION == 13] <- "NT"
+
+# Label region based on the survey
+dataca$DEM_REGION[dataca$DEM_REGION == 1] <- "Altantic"
+dataca$DEM_REGION[dataca$DEM_REGION == 2] <- "Quebec"
+dataca$DEM_REGION[dataca$DEM_REGION == 3] <- "Ontario"
+dataca$DEM_REGION[dataca$DEM_REGION == 4] <- "West"
+
+# Label income based on the survey
+dataca$DEM_INCOME[dataca$DEM_INCOME == 1] <- "<20,000"
+dataca$DEM_INCOME[dataca$DEM_INCOME == 2] <- "20,000-39,999"
+dataca$DEM_INCOME[dataca$DEM_INCOME == 3] <- "40,000-59,999"
+dataca$DEM_INCOME[dataca$DEM_INCOME == 4] <- "60,000-79,999"
+dataca$DEM_INCOME[dataca$DEM_INCOME == 5] <- "80,000-99,999"
+dataca$DEM_INCOME[dataca$DEM_INCOME == 6] <- "100,000-119,999"
+dataca$DEM_INCOME[dataca$DEM_INCOME == 7] <- "120,000-139,999"
+dataca$DEM_INCOME[dataca$DEM_INCOME == 8] <- "140,000-159,999"
+dataca$DEM_INCOME[dataca$DEM_INCOME == 9] <- ">160,000"
+dataca$DEM_INCOME[dataca$DEM_INCOME == 10] <- "prefer not say"
+
+# Label marital status based on the survey
+dataca$DEM_MARITAL[dataca$DEM_MARITAL == 1] <- "Married"
+dataca$DEM_MARITAL[dataca$DEM_MARITAL == 2] <- "Living common-law"
+dataca$DEM_MARITAL[dataca$DEM_MARITAL == 3] <- "Widowed"
+dataca$DEM_MARITAL[dataca$DEM_MARITAL == 4] <- "Separated"
+dataca$DEM_MARITAL[dataca$DEM_MARITAL == 5] <- "Divorced"
+dataca$DEM_MARITAL[dataca$DEM_MARITAL == 6] <- "Never married"
+
+# Label Pregnancy based on the survey
+dataca$DEM_PREG[dataca$DEM_PREG == 1] <- "Pregnant"
+dataca$DEM_PREG[dataca$DEM_PREG == 0] <- "Not pregnant"
+
+# As.factor some variables
+dataca$DEM_EDU <- as.factor(dataca$DEM_EDU)
+
+```
+
+```{r}
+
 ```
 
 
 ```{r}
 #Export cleaned data
-write.csv(CA, "./CA_Clean.csv")
-write.csv(DE, "./DE_Clean.csv")
-write.csv(UK, "./UK_Clean.csv")
-write.csv(US18, "./US18_Clean.csv")
-write.csv(US19, "./US19_Clean.csv")
+write.csv(dataca, "./CA_Clean.csv")
+write.csv(datade, "./DE_Clean.csv")
+write.csv(datauk, "./UK_Clean.csv")
+write.csv(dataus18, "./US18_Clean.csv")
+write.csv(dataus19, "./US19_Clean.csv")
 ```
 
 
