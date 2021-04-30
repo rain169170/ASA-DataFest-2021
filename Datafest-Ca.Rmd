@@ -89,7 +89,6 @@ plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) +
         x ="Drug Type", y = "Proportion of Misuse")
 
 plot_misuse
-
 ```
 
 ```{r}
@@ -164,6 +163,7 @@ summary(model2)
 model3 <- glm(total_misuse ~ PAIN_CHRONIC + PAIN_ACUTE + MENT_ANX + MENT_ADHD + MENT_AUT + MENT_BIP + MENT_BPD + MENT_DEP + MENT_EAT + MENT_OCD + MENT_PANIC + MENT_PPD + MENT_PTSD + MENT_SCH + MENT_OTH + MENT_NONE, family=poisson, data = dataca)
 summary(model3)
 ```
+
 ##visualization
 ```{r}
 dataca %>% 
