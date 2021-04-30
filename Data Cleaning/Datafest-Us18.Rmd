@@ -1,0 +1,229 @@
+---
+title: "Datafest-Us18"
+author: "Ting Wang"
+date: '2021-04-29'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dbplyr)
+library(tidyverse)
+library(readxl)
+library(lme4)
+library(gtsummary)
+library(caret)
+library(e1071)
+library(randomForest)
+library(ROCR)
+```
+
+##data wrangling
+```{r,message=FALSE}
+dataus18 <- read_csv("us18.csv")
+attach(dataus18)
+head(dataus18)
+```
+
+
+
+
+
+```{r}
+useFENT <- na.omit(dataus18$FENT_NMU) 
+propFENT <- sum(useFENT == "1")/length(useFENT)
+
+useBUP <- na.omit(dataus18$BUP_NMU) 
+propBUP <- sum(useBUP == "1")/length(useBUP)
+
+useMETH <- na.omit(dataus18$METH_NMU) 
+propMETH <- sum(useMETH == "1")/length(useMETH)
+
+useMORPH <- na.omit(dataus18$MORPH_NMU) 
+propMORPH <- sum(useMORPH == "1")/length(useMORPH)
+
+useOXY <- na.omit(dataus18$OXY_NMU) 
+propOXY <- sum(useOXY == "1")/length(useOXY)
+
+useOXYM <- na.omit(dataus18$OXYM_NMU) 
+propOXYM <- sum(useOXYM == "1")/length(useOXYM)
+
+useTRAM <- na.omit(dataus18$TRAM_NMU) 
+propTRAM <- sum(useTRAM == "1")/length(useTRAM)
+
+useTAP <- na.omit(dataus18$TAP_NMU) 
+propTAP <- sum(useTAP == "1")/length(useTAP)
+
+useCOD <- na.omit(dataus18$COD_NMU) 
+propCOD <- sum(useCOD == "1")/length(useCOD)
+
+useHYD <- na.omit(dataus18$HYD_NMU) 
+propHYD <- sum(useHYD == "1")/length(useHYD)
+
+useHYDM <- na.omit(dataus18$HYDM_NMU) 
+propHYDM <- sum(useHYDM == "1")/length(useHYDM)
+
+useSUF <- na.omit(dataus18$SUF_NMU) 
+propSUF <- sum(useSUF == "1")/length(useSUF)
+
+useSTIM <- na.omit(dataus18$STIM_NMU) 
+propSTIM <- sum(useSTIM == "1")/length(useSTIM)
+
+useBENZ <- na.omit(dataus18$BENZ_NMU) 
+propBENZ <- sum(useBENZ == "1")/length(useBENZ)
+
+useTHC <- na.omit(dataus18$THC_NMU) 
+propTHC <- sum(useTHC == "1")/length(useTHC)
+
+useDIHY <- na.omit(dataus18$DIHY_NMU) 
+propDIHY <- sum(useDIHY == "1")/length(useDIHY)
+
+useKTM <- na.omit(dataus18$KTM_NMU) 
+propKTM <- sum(useKTM == "1")/length(useKTM)
+
+
+prop <- c(propFENT, propBUP, propMETH, propMORPH, propOXY, propOXYM, propTRAM, propTAP, propCOD, propHYD, propHYDM, propSUF, propSTIM, propBENZ, propTHC, propDIHY, propKTM)
+
+drugs <- c('FENT', 'BUP','METH', 'MORPH', 'OXY', 'OXYM', 'TRAM', 'TAP', 'COD', 'HYD', 'HYDM', 'SUF', 'STIM', 'BENZ', 'THC', 'DIHY', 'KTM')  
+
+ 
+prop_misuse <- data.frame(drugs,prop)
+
+plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) +
+  geom_bar(stat="identity", width=0.5) + 
+  labs(title="Proportion of Misuse by Drug Type in US 18",
+        x ="Drug Type", y = "Proportion of Misuse")
+
+plot_misuse
+```
+
+
+```{r}
+dataus18$FENT_NMU[is.na(dataus18$FENT_NMU)] <- 0
+dataus18$BUP_NMU[is.na(dataus18$BUP_NMU)] <- 0
+dataus18$METH_NMU[is.na(dataus18$METH_NMU)] <- 0
+dataus18$MORPH_NMU[is.na(dataus18$MORPH_NMU)] <- 0
+dataus18$OXY_NMU[is.na(dataus18$OXY_NMU)] <- 0
+dataus18$OXYM_NMU[is.na(dataus18$OXYM_NMU)] <- 0
+dataus18$TRAM_NMU[is.na(dataus18$TRAM_NMU)] <- 0
+dataus18$TAP_NMU[is.na(dataus18$TAP_NMU)] <- 0
+dataus18$COD_NMU[is.na(dataus18$COD_NMU)] <- 0
+dataus18$HYD_NMU[is.na(dataus18$HYD_NMU)] <- 0
+dataus18$HYDM_NMU[is.na(dataus18$HYDM_NMU)] <- 0
+dataus18$SUF_NMU[is.na(dataus18$SUF_NMU)] <- 0
+dataus18$STIM_NMU[is.na(dataus18$STIM_NMU)] <- 0
+dataus18$BENZ_NMU[is.na(dataus18$BENZ_NMU)] <- 0
+dataus18$THC_NMU[is.na(dataus18$THC_NMU)] <- 0
+dataus18$DIHY_NMU[is.na(dataus18$DIHY_NMU)] <- 0
+dataus18$KTM_NMU[is.na(dataus18$KTM_NMU)] <- 0
+
+dataus18 <- dataus18 %>%
+  mutate(total_misuse =FENT_NMU + BUP_NMU + METH_NMU + MORPH_NMU + OXY_NMU + OXYM_NMU + TRAM_NMU + TAP_NMU + COD_NMU + HYD_NMU + HYDM_NMU + SUF_NMU + STIM_NMU +  BENZ_NMU + THC_NMU + DIHY_NMU + KTM_NMU)
+hist(dataus18$total_misuse)
+boxplot(dataus18$total_misuse)
+summary(dataus18$total_misuse)
+```
+
+##modelling
+```{r}
+dataus18$DEM_AGE10 <- as.factor(dataus18$DEM_AGE10)
+dataus18$DEM_GENDER <- as.factor(dataus18$DEM_GENDER)
+dataus18$DEM_RACE <- as.factor(dataus18$DEM_RACE)
+dataus18$DEM_REGION <- as.factor(dataus18$DEM_REGION)
+dataus18$DEM_HISPANIC <- as.factor(dataus18$DEM_HISPANIC)
+dataus18$DEM_MARITAL <- as.factor(dataus18$DEM_MARITAL)
+dataus18$DEM_INCOME <- as.factor(dataus18$DEM_INCOME)
+dataus18$DEM_EDU <- as.factor(dataus18$DEM_EDU)
+dataus18$ALC_USE <- as.factor(dataus18$ALC_USE)
+dataus18$TOB_USE <- as.factor(dataus18$TOB_USE)
+dataus18$OTH_RX_DRUG_USE <- as.factor(dataus18$OTH_RX_DRUG_USE)
+
+
+model1 <- glm(total_misuse ~ DEM_GENDER + DEM_HISPANIC + DEM_HEALTH + DEM_RACE + DEM_REGION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_USE + TOB_USE + OTH_RX_DRUG_USE, family=poisson, data = dataus18)
+summary(model1)
+```
+
+
+```{r}
+model2 <- glm(total_misuse ~ DEM_PREG + DEM_HEALTH + HELP_SUB_USE + DRSHOP_USE + DRSHOP_SELL + HPC_USE + HPC_SELL, family=poisson, data = dataus18)
+summary(model2)
+#preg, uses and sell 
+```
+
+```{r}
+model3 <- glm(total_misuse ~ PAIN_CHRONIC + PAIN_ACUTE + MENT_ANX + MENT_ADHD + MENT_AUT + MENT_BIP + MENT_BPD + MENT_DEP + MENT_EAT + MENT_OCD + MENT_PANIC + MENT_PPD + MENT_PTSD + MENT_SCH + MENT_OTH + MENT_NONE, family=poisson, data = dataus18)
+summary(model3)
+```
+
+##random forest
+```{r}
+dataus18 <- dataus18%>% mutate(has_misuse = ifelse(total_misuse >= 1, 1, 0))
+dataus18$has_misuse <- as.factor(dataus18$has_misuse)
+
+# 80% train 20% test
+smp_size <- floor(0.8 * nrow(dataus18))
+#set seed
+set.seed(1234)
+train_ind <- sample(seq_len(nrow(dataus18)), size = smp_size)
+
+train <- dataus18[train_ind, ]
+test <- dataus18[-train_ind, ]
+```
+
+```{r}
+set.seed(1234)
+rf_us18 <-randomForest(has_misuse~ DEM_GENDER + DEM_AGE10 + DEM_RACE + DEM_REGION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_USE + TOB_USE + OTH_RX_DRUG_USE + HELP_SUB_USE + PAIN_CHRONIC + PAIN_ACUTE + MENT_NONE,data=dataus18, ntree=500) 
+
+print(rf_us18)
+importance(rf_us18)
+varImpPlot(rf_us18)
+```
+
+
+
+```{r}
+pred1=predict(rf_us18,type = "prob")
+perf = prediction(pred1[,2], dataus18$has_misuse)
+# 1. Area under curve
+auc = performance(perf, "auc")
+#auc
+# 2. True Positive and Negative Rate
+pred3 = performance(perf, "tpr","fpr")
+# 3. Plot the ROC curve
+plot(pred3,main="ROC Curve for Random Forest On US18 Data",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=2,col="gray")
+
+pred <- predict(rf_us18, newdata=test)
+confusionMatrix(pred,test$has_misuse)
+```
+
+
+
+
+```{r}
+trControl <- trainControl(method = "cv",
+    number = 10,
+    search = "grid")
+
+rf_default <- train(has_misuse~ DEM_GENDER + DEM_AGE10 + DEM_RACE + DEM_REGION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_USE + TOB_USE + OTH_RX_DRUG_USE + HELP_SUB_USE + PAIN_CHRONIC + PAIN_ACUTE + MENT_NONE,data=train,
+    method = "rf",
+    metric = "Accuracy",
+    trControl = trControl)
+
+prediction <-predict(rf_default, test)
+confusionMatrix(prediction, test$has_misuse)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
