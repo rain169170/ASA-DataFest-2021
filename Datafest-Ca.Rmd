@@ -12,9 +12,6 @@ library(tidyverse)
 library(readxl)
 library(lme4)
 library(gtsummary)
-#install.packages("randomForest")
-#install.packages("caret")
-#install.packages("e1071")
 library(caret)
 library(e1071)
 library(randomForest)
@@ -89,6 +86,7 @@ plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) +
         x ="Drug Type", y = "Proportion of Misuse")
 
 plot_misuse
+
 ```
 
 ```{r}
@@ -129,7 +127,7 @@ dataca$TOB_FREQ_USE <- as.factor(dataca$TOB_FREQ_USE)
 dataca$OTH_RX_DRUG_USE <- as.factor(dataca$OTH_RX_DRUG_USE)
 
 
-model1 <- glm(total_misuse ~ DEM_GENDER + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE, family=poisson, data = dataca)
+model1 <- glm(total_misuse ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE, family=poisson, data = dataca)
 summary(model1)
 #sig var include age, abor, location (all besides NB, Nunavut and Northwest), marital (common law and seperated), income (160,000 or more and refer not to say), edu (trade and uni below bachelor)
 
@@ -163,7 +161,6 @@ summary(model2)
 model3 <- glm(total_misuse ~ PAIN_CHRONIC + PAIN_ACUTE + MENT_ANX + MENT_ADHD + MENT_AUT + MENT_BIP + MENT_BPD + MENT_DEP + MENT_EAT + MENT_OCD + MENT_PANIC + MENT_PPD + MENT_PTSD + MENT_SCH + MENT_OTH + MENT_NONE, family=poisson, data = dataca)
 summary(model3)
 ```
-
 ##visualization
 ```{r}
 dataca %>% 
@@ -235,104 +232,79 @@ confusionMatrix(pred,test$has_misuse)
 ```
 
 
-
-
-
-##useless stuff dont delete yet
+##see which people tend do use a specific drug 
 ```{r,eval=FALSE}
-trControl <- trainControl(method = "cv",number = 10, search = "grid")
-
-rfmodel <- train(total_misuse ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE, data = train,
-    method = "rf",
-    metric = "RMSE",
-    trControl = trControl)
-#print(rfmodel)
-pred <- predict(rfmodel, newdata= test)
-#print(pred)
-
-```
+dataca %>% filter(FENT_NMU =="1")%>%
+  ggplot(aes(x=DEM_AGE10,y=DEM_INCOME,col=as.factor(DEM_GENDER)))+
+  geom_point()+
+  facet_wrap(~DEM_REGION,nrow=3)+
+  theme_light()
 
 
+dataca %>% filter(FENT_NMU =="1")%>%
+  ggplot(aes(x=DEM_AGE10,y=DEM_INCOME,col=as.factor(DEM_GENDER)))+
+  geom_point()+
+  facet_wrap(~DEM_REGION,nrow=3)+
+  theme_light()
 
-```{r,eval=FALSE}
-#print(rfmodel)
+FentUser <- dataca %>% filter(FENT_NMU =="1")
+hist(FentUser$DEM_AGE10)
 
-#find best mtry 
-set.seed(1234)
-tuneGrid <- expand.grid(.mtry = c(1: 10))
-rf_mtry <- train(total_misuse ~ gender + abor + location + marital + income + edu , data = train,
-    method = "rf",
-    metric = "RMSE",
-    tuneGrid = tuneGrid,
-    trControl = trControl,
-    importance = TRUE,
-    nodesize = 14,
-    ntree = 300)
-
-print(rf_mtry)
-
-#find best maxnode
-store_maxnode <- list()
-tuneGrid <- expand.grid(.mtry = best_mtry)
-for (maxnodes in c(5: 20)) {
-    set.seed(1234)
-    rf_maxnode <- train(total_misuse ~ gender + abor + location + marital + income + edu , data = train,
-        method = "rf",
-        metric = "RMSE",
-        tuneGrid = tuneGrid,
-        trControl = trControl,
-        importance = TRUE,
-        nodesize = 14,
-        maxnodes = maxnodes,
-        ntree = 300)
-    current_iteration <- toString(maxnodes)
-    store_maxnode[[current_iteration]] <- rf_maxnode
-}
-results_mtry <- resamples(store_maxnode)
-summary(results_mtry)
-
-#find best ntrees
-store_maxtrees <- list()
-for (ntree in c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000)) {
-    set.seed(1234)
-    rf_maxtrees <- train(total_misuse ~ gender + abor + location + marital + income + edu , data = train,
-        method = "rf",
-        metric = "RMSE",
-        tuneGrid = tuneGrid,
-        trControl = trControl,
-        importance = TRUE,
-        nodesize = 14,
-        maxnodes = 24,
-        ntree = ntree)
-    key <- toString(ntree)
-    store_maxtrees[[key]] <- rf_maxtrees
-}
-results_tree <- resamples(store_maxtrees)
-summary(results_tree)
+par(mfrow=c(4,4))
+hist((dataca %>% filter(FENT_NMU =="1"))$DEM_AGE10,main="FENT",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(BUP_NMU =="1"))$DEM_AGE10,main="BUP",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(METH_NMU =="1"))$DEM_AGE10,main="METH",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(MORPH_NMU =="1"))$DEM_AGE10,main="MORPH",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(OXY_NMU =="1"))$DEM_AGE10,main="OXY",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(OXYM_NMU =="1"))$DEM_AGE10,main="OXYM",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(TRAM_NMU =="1"))$DEM_AGE10,main="TRAM",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(TAP_NMU =="1"))$DEM_AGE10,main="TAP",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(COD_NMU =="1"))$DEM_AGE10,main="COD",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(COTC_NMU =="1"))$DEM_AGE10,main="COTC",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(HYD_NMU =="1"))$DEM_AGE10,main="HYD",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(HYDM_NMU =="1"))$DEM_AGE10,main="HYDM",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(SUF_NMU =="1"))$DEM_AGE10,main="SUF",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(STIM_NMU =="1"))$DEM_AGE10,main="STIM",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(BENZ_NMU =="1"))$DEM_AGE10,main="BENZ",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(THC_NMU =="1"))$DEM_AGE10,main="THC",xlab="Age",ylim=c(0,80))
 
 
 ```
 
 
+## which type of people are more likely to misuse which drugs 
+```{r}
+dataca <- dataca %>%
+  mutate(use_pr=ifelse(FENT_NMU == "1" | BUP_NMU == "1"| METH_NMU == "1"| MORPH_NMU == "1"| OXY_NMU == "1"| OXYM_NMU == "1"| TRAM_NMU == "1"| TAP_NMU == "1"| COD_NMU == "1"| COTC_NMU == "1"| HYD_NMU == "1"| HYDM_NMU == "1"| SUF_NMU == "1",1,0)) %>%
+  mutate(use_stim=ifelse(STIM_NMU == "1" | BENZ_NMU == "1"| THC_NMU == "1",1,0))
 
+dataca$use_pr <- as.factor(dataca$use_pr)
+dataca$use_stim <- as.factor(dataca$use_stim)
 
-```{r,eval=FALSE}
+model4 <- glm(use_pr ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_EDU + DEM_LOCATION +DEM_INCOME, data=dataca,family="binomial")
+summary(model4)
 
-dataca$DEM_PREG[is.na(dataca$DEM_PREG)] <- 0
-dataca$DEM_HEALTH[is.na(dataca$DEM_HEALTH)] <- 0
-dataca$HEALTH_RX[is.na(dataca$HEALTH_RX)] <- 0
+model5 <- glm(use_stim ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_EDU + DEM_LOCATION + DEM_INCOME, data=dataca,family="binomial")
+summary(model5)
 
-dataca$DEM_PREG <- as.factor(dataca$DEM_PREG)
-dataca$DEM_HEALTH <- as.factor(dataca$DEM_HEALTH)
-dataca$HEALTH_RX <- as.factor(dataca$HEALTH_RX)
-
-rf1 <-randomForest(has_misuse~DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE + DEM_PREG + DEM_HEALTH + HEALTH_RX + HELP_SUB_USE + DRSHOP_NMU + DRSHOP_SELL + HPC_USE + HPC_SELL,data=train, ntree=500) 
 ```
 
+##which drugs are often misused together 
+```{r,message=FLASE}
+#install.packages("Hmisc")
+#install.packages("corrplot")
+library("Hmisc")
+library(corrplot)
+misuse<- dataca %>% select(FENT_NMU, BUP_NMU, METH_NMU, MORPH_NMU, OXY_NMU, OXYM_NMU, TRAM_NMU, TAP_NMU, COD_NMU, COTC_NMU, HYD_NMU, HYDM_NMU, SUF_NMU, STIM_NMU, BENZ_NMU, THC_NMU)
 
 
+res <- cor(misuse)
+round(res, 3)
 
+corrplot(res, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
 
+```
 
 
 
