@@ -13,12 +13,17 @@ library(readxl)
 library(cowplot)
 library(viridis)
 library(gtsummary)
+library(plotly)
+library(gplots)
+library(RColorBrewer)
+library(heatmaply)
 ```
 
 ```{r,message=FALSE}
 dataca <- read_csv("../Data Cleaning/CA_Clean.csv")
+dataca_totalmisuse <- read_csv("../Data Cleaning/CA_total_misuse.csv")
 attach(dataca)
-head(dataca)
+dataca
 ```
 
 ## Drug Misuse Visualization
@@ -87,23 +92,65 @@ plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) +
 plot_misuse
 ggsave("Proportion of misuse by drug type in Canada.png", plot_misuse)
 ```
+```{r}
+# Proportion of Misuse by Drug Type by province in Canada
+drugs <- c('FENT', 'BUP','METH', 'MORPH', 'OXY', 'OXYM', 'TRAM', 'TAP', 'COD', 'COTC', 'HYD', 'HYDM', 'SUF', 'STIM', 'BENZ', 'THC')  
+
+propmisuse_geo <- dataca %>% group_by(DEM_LOCATION) %>% summarise(FENT = sum(na.omit(FENT_NMU))/length(na.omit(FENT_NMU)), BUP = sum(na.omit(BUP_NMU))/length(na.omit(BUP_NMU)), METH = sum(na.omit(METH_NMU))/length(na.omit(METH_NMU)), MORPH = sum(na.omit(MORPH_NMU))/length(na.omit(MORPH_NMU)), OXY = sum(na.omit(OXY_NMU))/length(na.omit(OXY_NMU)), OXYM = sum(na.omit(OXYM_NMU))/length(na.omit(OXYM_NMU)), TRAM = sum(na.omit(TRAM_NMU))/length(na.omit(TRAM_NMU)), TAP = sum(na.omit(TAP_NMU))/length(na.omit(TAP_NMU)), COD = sum(na.omit(COD_NMU))/length(na.omit(COD_NMU)), COTC = sum(na.omit(COTC_NMU))/length(na.omit(COTC_NMU)), HYD = sum(na.omit(HYD_NMU))/length(na.omit(HYD_NMU)),HYDM = sum(na.omit(HYDM_NMU))/length(na.omit(HYDM_NMU)),SUF = sum(na.omit(SUF_NMU))/length(na.omit(SUF_NMU)),STIM = sum(na.omit(STIM_NMU))/length(na.omit(STIM_NMU)),BENZ = sum(na.omit(BENZ_NMU))/length(na.omit(BENZ_NMU)),THC = sum(na.omit(THC_NMU))/length(na.omit(THC_NMU)))
+propmisuse_geo$FENT[is.na(propmisuse_geo$FENT)] <- 0
+propmisuse_geo$BUP[is.na(propmisuse_geo$BUP)] <- 0
+propmisuse_geo$METH[is.na(propmisuse_geo$METH)] <- 0
+propmisuse_geo$MORPH[is.na(propmisuse_geo$MORPH)] <- 0
+propmisuse_geo$OXY[is.na(propmisuse_geo$OXY)] <- 0
+propmisuse_geo$OXYM[is.na(propmisuse_geo$OXYM)] <- 0
+propmisuse_geo$TRAM[is.na(propmisuse_geo$TRAM)] <- 0
+propmisuse_geo$TAP[is.na(propmisuse_geo$TAP)] <- 0
+propmisuse_geo$COD[is.na(propmisuse_geo$COD)] <- 0
+propmisuse_geo$COTC[is.na(propmisuse_geo$COTC)] <- 0
+propmisuse_geo$HYD[is.na(propmisuse_geo$HYD)] <- 0
+propmisuse_geo$HYDM[is.na(propmisuse_geo$HYDM)] <- 0
+propmisuse_geo$SUF[is.na(propmisuse_geo$SUF)] <- 0
+propmisuse_geo$STIM[is.na(propmisuse_geo$STIM)] <- 0
+propmisuse_geo$BENZ[is.na(propmisuse_geo$BENZ)] <- 0
+propmisuse_geo$THC[is.na(propmisuse_geo$THC)] <- 0
+propmisuse_geo
+
+# C(FENT_MUR, BUP_MUR, METH_MUR, MORPH_MUR, OXY_MUR, OXYM_MUR, TRAM_MUR, TAP_MUR, COD_MUR, COTC_MUR, HYD_MUR, HYDM_MUR, SUF_MUR, STIM_MUR, BENZ_MUR, THC_MUR)
+
+rnames <- propmisuse_geo$DEM_LOCATION           
+mat_data <- data.matrix(propmisuse_geo[,2:ncol(propmisuse_geo)]) 
+rownames(mat_data) <- rnames  
+
+heatmaply(mat_data,
+          xlab = "Drugs",
+          ylab = "Provinces",
+          main = "Drug misuse rates for each province by type of drugs",
+          scale_fill_gradient_fun = ggplot2::scale_fill_gradient2(
+    low = "steelblue", 
+    high = "chocolate2", 
+    midpoint = 0.5, 
+    limits = c(0, 1)
+  ))
+
+```
+
+
+
 
 ```{r}
-
-hist(dataca$total_misuse)
-boxplot(dataca$total_misuse)
+hist(dataca_totalmisuse$total_misuse)
+boxplot(dataca_totalmisuse$total_misuse)
 ```
 
 
 ```{r}
-
-locationf <- dataca %>% filter(DEM_GENDER == "Female")  %>%
+locationf <- dataca_totalmisuse %>% filter(DEM_GENDER == "Female")  %>%
   ggplot(aes(x=as.factor(DEM_LOCATION), y=total_misuse))+
   geom_point(alpha = 0.1, size = 7, color = "chocolate2")+
   xlab("current location") + ylim(0, 15) +
   theme_light() +ggtitle("Total Misuse by location for Female")
 
-locationm <- dataca %>% filter(DEM_GENDER == "Male")  %>%
+locationm <- dataca_totalmisuse %>% filter(DEM_GENDER == "Male")  %>%
   ggplot(aes(x=as.factor(DEM_LOCATION), y=total_misuse))+
   geom_point(alpha = 0.1, size = 7, color = "steelblue")+ 
   xlab("current location") +
@@ -111,18 +158,18 @@ locationm <- dataca %>% filter(DEM_GENDER == "Male")  %>%
 locationgender <- plot_grid(locationf, locationm)
 locationgender
 
-locationmisuse <- dataca %>% 
+locationmisuse <- dataca_totalmisuse %>% 
   ggplot(aes(x=location, y=total_misuse))+
   geom_point(alpha = 0.5, size = 7, colour = "chocolate")+
   theme_light()
-locationmisuse
+ggplotly(locationmisuse)
 
-agef <- dataca %>% filter(DEM_GENDER == "Female") %>%
+agef <- dataca_totalmisuse %>% filter(DEM_GENDER == "Female") %>%
   ggplot(aes(x=as.factor(DEM_AGE10), y=total_misuse))+
   geom_point(alpha = 0.08, size = 7, color = "chocolate2")+ 
   ggtitle("Total Misuse by age for Female") + ylim(0, 15)+ xlab("Age Group") +
   theme_light()
-agem <- dataca %>% filter(DEM_GENDER == "Male") %>%
+agem <- dataca_totalmisuse %>% filter(DEM_GENDER == "Male") %>%
   ggplot(aes(x=as.factor(DEM_AGE10), y=total_misuse))+
   geom_point(alpha = 0.08, size = 7, color = "steelblue")+ 
   ggtitle("Total Misuse by age for Male") + xlab("Age Group") +
@@ -130,12 +177,12 @@ agem <- dataca %>% filter(DEM_GENDER == "Male") %>%
 agegender <- plot_grid(agef, agem)
 agegender
 
-eduf<- dataca %>% filter(DEM_GENDER == "Female") %>%
+eduf<- dataca_totalmisuse %>% filter(DEM_GENDER == "Female") %>%
   ggplot(aes(x=DEM_EDU, y=total_misuse))+
   geom_point(alpha = 0.1, size = 7, color = "chocolate2")+ ylim(0, 15) +
   ggtitle("Total Misuse by Education Level for Female") + xlab("Education Level")+
   theme_light()
-edum<- dataca %>% filter(DEM_GENDER == "Male") %>%
+edum<- dataca_totalmisuse %>% filter(DEM_GENDER == "Male") %>%
   ggplot(aes(x=DEM_EDU, y=total_misuse))+
   geom_point(alpha = 0.1, size = 7, color = "steelblue")+ ylim(0, 15) +
   ggtitle("Total Misuse by Education Level for Male") + xlab("Education Level")+
@@ -143,12 +190,12 @@ edum<- dataca %>% filter(DEM_GENDER == "Male") %>%
 edugender <- plot_grid(eduf, edum)
 edugender
 
-incomef <- dataca %>% filter(DEM_GENDER == "Female") %>%
+incomef <- dataca_totalmisuse %>% filter(DEM_GENDER == "Female") %>%
   ggplot(aes(x=DEM_INCOME, y=total_misuse))+ ylim(0, 15) +
   geom_point(alpha = 0.1, size = 7, color = "chocolate2")+
   ggtitle("Total Misuse by income for Female") + xlab("Income")+
   theme_light()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
-incomem <- dataca %>% filter(DEM_GENDER == "Male") %>%
+incomem <- dataca_totalmisuse %>% filter(DEM_GENDER == "Male") %>%
   ggplot(aes(x=DEM_INCOME, y=total_misuse))+ ylim(0, 15) +
   geom_point(alpha = 0.1, size = 7, color = "steelblue")+
   ggtitle("Total Misuse by income for Male") + xlab("Income")+
@@ -161,16 +208,16 @@ ggsave("Total Misuse by location.png", locationmisuse)
 ggsave("Total Misuse by Age by Gender.png", agegender)
 ggsave("Total Misuse by Education Level by Gender.png", edugender)
 ggsave("Total Misuse by Income Level by Gender.png", incomegender)
-
 ```
+
 ```{r}
-locationf <- dataca %>% filter(DEM_GENDER == "Female")  %>%
+locationf <- dataca_totalmisuse %>% filter(DEM_GENDER == "Female")  %>%
   ggplot(aes(x=as.factor(DEM_LOCATION), y=total_misuse))+
   geom_count(color = "chocolate2", alpha = 0.9)+
   xlab("current location") + ylim(0, 15) + scale_size_area(max_size = 8)+
   theme_light() +ggtitle("Total Misuse by location for Female")
 
-locationm <- dataca %>% filter(DEM_GENDER == "Male")  %>%
+locationm <- dataca_totalmisuse %>% filter(DEM_GENDER == "Male")  %>%
   ggplot(aes(x=as.factor(DEM_LOCATION), y=total_misuse))+
   geom_count(color = "steelblue", alpha = 0.9)+ 
   xlab("current location") + scale_size_area(max_size = 8)+
@@ -178,12 +225,12 @@ locationm <- dataca %>% filter(DEM_GENDER == "Male")  %>%
 locationgender <- plot_grid(locationf, locationm)
 locationgender
 
-incomef <- dataca %>% filter(DEM_GENDER == "Female") %>%
+incomef <- dataca_totalmisuse %>% filter(DEM_GENDER == "Female") %>%
   ggplot(aes(x=DEM_INCOME, y=total_misuse))+ ylim(0, 15) +
   geom_count(color = "chocolate2")+scale_size_area(max_size = 8)+
   ggtitle("Total Misuse by income for Female") + xlab("Income")+
   theme_light()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
-incomem <- dataca %>% filter(DEM_GENDER == "Male") %>%
+incomem <- dataca_totalmisuse %>% filter(DEM_GENDER == "Male") %>%
   ggplot(aes(x=DEM_INCOME, y=total_misuse))+ ylim(0, 15) +
   geom_count(color = "steelblue")+scale_size_area(max_size = 8)+
   ggtitle("Total Misuse by income for Male") + xlab("Income")+
@@ -194,13 +241,13 @@ incomegender
 
 ```{r}
 #Pregnancy
-dataca %>% filter(DEM_GENDER == "Female") %>%
+dataca_totalmisuse %>% filter(DEM_GENDER == "Female") %>%
   ggplot(aes(x=DEM_PREG, y=total_misuse))+ ylim(0, 15) +
   geom_count(color = "chocolate2")+scale_size_area(max_size = 8)+
   ggtitle("Total Misuse by Pregnancy for Female") + xlab("Pregnancy")+
   theme_light()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-dataca %>% filter(DEM_GENDER == "Female") %>%
+dataca_totalmisuse %>% filter(DEM_GENDER == "Female") %>%
   ggplot(aes(x=DEM_PREGMNTH, y=total_misuse))+ ylim(0, 15) +
   geom_count(color = "chocolate2")+scale_size_area(max_size = 8)+
   ggtitle("Total Misuse by pregnancy months for Female") + xlab("Pregnancy Month")+
@@ -208,35 +255,19 @@ dataca %>% filter(DEM_GENDER == "Female") %>%
 ```
 
 ```{r}
-maritalf <- dataca %>% filter(DEM_GENDER == "Female")  %>%
+maritalf <- dataca_totalmisuse %>% filter(DEM_GENDER == "Female")  %>%
   ggplot(aes(x=DEM_MARITAL, y=total_misuse))+
   geom_count(color = "chocolate2", alpha = 0.9)+
   xlab("Marital Status") + ylim(0, 15) + scale_size_area(max_size = 8)+
   theme_light() +theme(axis.text.x = element_text(angle = 45, hjust = 1))+ggtitle("Total Misuse by Marital Status for Female")
 
-maritalm <- dataca %>% filter(DEM_GENDER == "Male")  %>%
+maritalm <- dataca_totalmisuse %>% filter(DEM_GENDER == "Male")  %>%
   ggplot(aes(x=DEM_MARITAL, y=total_misuse))+
   geom_count(color = "steelblue", alpha = 0.9)+ 
   xlab("Marital Status") + scale_size_area(max_size = 8)+ theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   theme_light()+theme(axis.text.x = element_text(angle = 45, hjust = 1))+ggtitle("Total Misuse by Marital Status for Male")
 maritalgender <- plot_grid(maritalf, maritalm)
 maritalgender
-
-
-dataca %>%
-  ggplot( aes(x=total_misuse, group=DEM_MARITAL, fill=DEM_MARITAL)) +
-    geom_area() +
-    scale_fill_viridis(discrete = TRUE) +
-    theme(legend.position="none") +
-    ggtitle("Popularity of American names in the previous 30 years") +
-    theme_ipsum() +
-    theme(
-      legend.position="none",
-      panel.spacing = unit(0, "lines"),
-      strip.text.x = element_text(size = 8),
-      plot.title = element_text(size=13)
-    ) +
-    facet_wrap(~name, scale="free_y")
 ```
 
 
@@ -247,12 +278,101 @@ dataca%>%
   modify_header(label ~ "**Variable**")
 ```
 
+```{r}
+# Proportion of Misuse by Drug Type by age in Canada
+propmisuse_age <- dataca %>% group_by(DEM_AGE10) %>% summarise(FENT = sum(na.omit(FENT_NMU))/length(na.omit(FENT_NMU)), BUP = sum(na.omit(BUP_NMU))/length(na.omit(BUP_NMU)), METH = sum(na.omit(METH_NMU))/length(na.omit(METH_NMU)), MORPH = sum(na.omit(MORPH_NMU))/length(na.omit(MORPH_NMU)), OXY = sum(na.omit(OXY_NMU))/length(na.omit(OXY_NMU)), OXYM = sum(na.omit(OXYM_NMU))/length(na.omit(OXYM_NMU)), TRAM = sum(na.omit(TRAM_NMU))/length(na.omit(TRAM_NMU)), TAP = sum(na.omit(TAP_NMU))/length(na.omit(TAP_NMU)), COD = sum(na.omit(COD_NMU))/length(na.omit(COD_NMU)), COTC = sum(na.omit(COTC_NMU))/length(na.omit(COTC_NMU)), HYD = sum(na.omit(HYD_NMU))/length(na.omit(HYD_NMU)),HYDM = sum(na.omit(HYDM_NMU))/length(na.omit(HYDM_NMU)),SUF = sum(na.omit(SUF_NMU))/length(na.omit(SUF_NMU)),STIM = sum(na.omit(STIM_NMU))/length(na.omit(STIM_NMU)),BENZ = sum(na.omit(BENZ_NMU))/length(na.omit(BENZ_NMU)),THC = sum(na.omit(THC_NMU))/length(na.omit(THC_NMU)))
+propmisuse_age$FENT[is.na(propmisuse_age$FENT)] <- 0
+propmisuse_age$BUP[is.na(propmisuse_age$BUP)] <- 0
+propmisuse_age$METH[is.na(propmisuse_age$METH)] <- 0
+propmisuse_age$MORPH[is.na(propmisuse_age$MORPH)] <- 0
+propmisuse_age$OXY[is.na(propmisuse_age$OXY)] <- 0
+propmisuse_age$OXYM[is.na(propmisuse_age$OXYM)] <- 0
+propmisuse_age$TRAM[is.na(propmisuse_age$TRAM)] <- 0
+propmisuse_age$TAP[is.na(propmisuse_age$TAP)] <- 0
+propmisuse_age$COD[is.na(propmisuse_age$COD)] <- 0
+propmisuse_age$COTC[is.na(propmisuse_age$COTC)] <- 0
+propmisuse_age$HYD[is.na(propmisuse_age$HYD)] <- 0
+propmisuse_age$HYDM[is.na(propmisuse_age$HYDM)] <- 0
+propmisuse_age$SUF[is.na(propmisuse_age$SUF)] <- 0
+propmisuse_age$STIM[is.na(propmisuse_age$STIM)] <- 0
+propmisuse_age$BENZ[is.na(propmisuse_age$BENZ)] <- 0
+propmisuse_age$THC[is.na(propmisuse_age$THC)] <- 0
+propmisuse_age
+
+
+rnames_age <- propmisuse_age$DEM_AGE10           
+mat_data_age <- data.matrix(propmisuse_age[,2:ncol(propmisuse_age)]) 
+rownames(mat_data_age) <- rnames_age
+
+heatmaply(mat_data_age,
+          xlab = "Drugs",
+          ylab = "Age",
+          main = "Drug misuse rates for each age by type of drugs",
+          scale_fill_gradient_fun = ggplot2::scale_fill_gradient2(
+    low = "steelblue", 
+    high = "chocolate2", 
+    midpoint = 0.5, 
+    limits = c(0, 1)
+  ))
+
+```
+
+```{r, include=FALSE}
+propmisuse_marital <- dataca %>% group_by(DEM_MARITAL) %>% summarise(FENT = sum(na.omit(FENT_NMU))/length(na.omit(FENT_NMU)), BUP = sum(na.omit(BUP_NMU))/length(na.omit(BUP_NMU)), METH = sum(na.omit(METH_NMU))/length(na.omit(METH_NMU)), MORPH = sum(na.omit(MORPH_NMU))/length(na.omit(MORPH_NMU)), OXY = sum(na.omit(OXY_NMU))/length(na.omit(OXY_NMU)), OXYM = sum(na.omit(OXYM_NMU))/length(na.omit(OXYM_NMU)), TRAM = sum(na.omit(TRAM_NMU))/length(na.omit(TRAM_NMU)), TAP = sum(na.omit(TAP_NMU))/length(na.omit(TAP_NMU)), COD = sum(na.omit(COD_NMU))/length(na.omit(COD_NMU)), COTC = sum(na.omit(COTC_NMU))/length(na.omit(COTC_NMU)), HYD = sum(na.omit(HYD_NMU))/length(na.omit(HYD_NMU)),HYDM = sum(na.omit(HYDM_NMU))/length(na.omit(HYDM_NMU)),SUF = sum(na.omit(SUF_NMU))/length(na.omit(SUF_NMU)),STIM = sum(na.omit(STIM_NMU))/length(na.omit(STIM_NMU)),BENZ = sum(na.omit(BENZ_NMU))/length(na.omit(BENZ_NMU)),THC = sum(na.omit(THC_NMU))/length(na.omit(THC_NMU)))
+propmisuse_marital$FENT[is.na(propmisuse_marital$FENT)] <- 0
+propmisuse_marital$BUP[is.na(propmisuse_marital$BUP)] <- 0
+propmisuse_marital$METH[is.na(propmisuse_marital$METH)] <- 0
+propmisuse_marital$MORPH[is.na(propmisuse_marital$MORPH)] <- 0
+propmisuse_marital$OXY[is.na(propmisuse_marital$OXY)] <- 0
+propmisuse_marital$OXYM[is.na(propmisuse_marital$OXYM)] <- 0
+propmisuse_marital$TRAM[is.na(propmisuse_marital$TRAM)] <- 0
+propmisuse_marital$TAP[is.na(propmisuse_marital$TAP)] <- 0
+propmisuse_marital$COD[is.na(propmisuse_marital$COD)] <- 0
+propmisuse_marital$COTC[is.na(propmisuse_marital$COTC)] <- 0
+propmisuse_marital$HYD[is.na(propmisuse_marital$HYD)] <- 0
+propmisuse_marital$HYDM[is.na(propmisuse_marital$HYDM)] <- 0
+propmisuse_marital$SUF[is.na(propmisuse_marital$SUF)] <- 0
+propmisuse_marital$STIM[is.na(propmisuse_marital$STIM)] <- 0
+propmisuse_marital$BENZ[is.na(propmisuse_marital$BENZ)] <- 0
+propmisuse_marital$THC[is.na(propmisuse_marital$THC)] <- 0
+propmisuse_marital
+
+maritalf <- dataca_total %>% filter(DEM_GENDER == "Female")  %>%
+  ggplot(aes(x=DEM_MARITAL, y=total_misuse))+
+  geom_count(color = "chocolate2", alpha = 0.9)+
+  xlab("Marital Status") + ylim(0, 15) + scale_size_area(max_size = 8)+
+  theme_light() +theme(axis.text.x = element_text(angle = 45, hjust = 1))+ggtitle("Total Misuse by Marital Status for Female")
+
+maritalm <- dataca_totalmisuse %>% filter(DEM_GENDER == "Male")  %>%
+  ggplot(aes(x=DEM_MARITAL, y=total_misuse))+
+  geom_count(color = "steelblue", alpha = 0.9)+ 
+  xlab("Marital Status") + scale_size_area(max_size = 8)+ theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  theme_light()+theme(axis.text.x = element_text(angle = 45, hjust = 1))+ggtitle("Total Misuse by Marital Status for Male")
+maritalgender <- plot_grid(maritalf, maritalm)
+maritalgender
+```
 
 
 
-
-
-
+```{r}
+par(mfrow=c(4,4))
+hist((dataca %>% filter(FENT_NMU =="1"))$DEM_AGE10,main="FENT",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(BUP_NMU =="1"))$DEM_AGE10,main="BUP",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(METH_NMU =="1"))$DEM_AGE10,main="METH",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(MORPH_NMU =="1"))$DEM_AGE10,main="MORPH",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(OXY_NMU =="1"))$DEM_AGE10,main="OXY",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(OXYM_NMU =="1"))$DEM_AGE10,main="OXYM",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(TRAM_NMU =="1"))$DEM_AGE10,main="TRAM",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(TAP_NMU =="1"))$DEM_AGE10,main="TAP",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(COD_NMU =="1"))$DEM_AGE10,main="COD",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(COTC_NMU =="1"))$DEM_AGE10,main="COTC",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(HYD_NMU =="1"))$DEM_AGE10,main="HYD",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(HYDM_NMU =="1"))$DEM_AGE10,main="HYDM",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(SUF_NMU =="1"))$DEM_AGE10,main="SUF",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(STIM_NMU =="1"))$DEM_AGE10,main="STIM",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(BENZ_NMU =="1"))$DEM_AGE10,main="BENZ",xlab="Age",ylim=c(0,80))
+hist((dataca %>% filter(THC_NMU =="1"))$DEM_AGE10,main="THC",xlab="Age",ylim=c(0,80))
+```
 
 
 
