@@ -21,7 +21,7 @@ library(randomForest)
 library(ROCR)
 ```
 
-##data wrangling
+##data
 ```{r,message=FALSE}
 dataca <- read_csv("ca.csv")
 attach(dataca)
@@ -130,8 +130,8 @@ dataca$TOB_FREQ_USE <- as.factor(dataca$TOB_FREQ_USE)
 dataca$OTH_RX_DRUG_USE <- as.factor(dataca$OTH_RX_DRUG_USE)
 
 
-model <- glm(total_misuse ~ gender + DEM_AGE10 + abor + location + marital + income + edu, family=poisson, data = dataca)
-summary(model)
+model1 <- glm(total_misuse ~ DEM_GENDER + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE, family=poisson, data = dataca)
+summary(model1)
 #sig var include age, abor, location (all besides NB, Nunavut and Northwest), marital (common law and seperated), income (160,000 or more and refer not to say), edu (trade and uni below bachelor)
 
 #male more misuse 
@@ -142,11 +142,7 @@ summary(model)
 #higher income, less misuse 
 #higher edu, generally less misuse, most misuse for University certificate or diploma below the bachelor's level
 ```
-```{r}
-model2 <- glm(total_misuse ~ alcohol + cig + other_drug, family=poisson, data = dataca)
-summary(model2)
-#all significant
-```
+
 ```{r}
 #dataca$DEM_PREG[is.na(dataca$DEM_PREG)] <- 0
 #dataca$DEM_HEALTH[is.na(dataca$DEM_HEALTH)] <- 0
@@ -159,16 +155,14 @@ summary(model2)
 #dataca$PAIN_CHRONIC <- as.factor(dataca$PAIN_CHRONIC)
 #dataca$PAIN_ACUTE <- as.factor(dataca$PAIN_ACUTE)
 
-model3 <- glm(total_misuse ~ DEM_PREGMNTH + DEM_HEALTH + HEALTH_RX + HELP_SUB_USE + DRSHOP_NMU + DRSHOP_SELL + HPC_USE + HPC_SELL, family=poisson, data = dataca)
-summary(model3)
+model2 <- glm(total_misuse ~ DEM_PREG + DEM_HEALTH + HEALTH_RX + HELP_SUB_USE + DRSHOP_NMU + DRSHOP_SELL + HPC_USE + HPC_SELL, family=poisson, data = dataca)
+summary(model2)
 #only help_sub_use sig, it significantly increases misuses 
 ```
 
 ```{r}
-
-model4 <- glm(total_misuse ~ PAIN_CHRONIC + PAIN_ACUTE + MENT_ANX + MENT_ADHD + MENT_AUT + MENT_BIP + MENT_BPD + MENT_DEP + MENT_EAT + MENT_OCD + MENT_PANIC + MENT_PPD + MENT_PTSD + MENT_SCH + MENT_OTH + MENT_NONE, family=poisson, data = dataca)
-summary(model4)
-
+model3 <- glm(total_misuse ~ PAIN_CHRONIC + PAIN_ACUTE + MENT_ANX + MENT_ADHD + MENT_AUT + MENT_BIP + MENT_BPD + MENT_DEP + MENT_EAT + MENT_OCD + MENT_PANIC + MENT_PPD + MENT_PTSD + MENT_SCH + MENT_OTH + MENT_NONE, family=poisson, data = dataca)
+summary(model3)
 ```
 ##visualization
 ```{r}
@@ -217,15 +211,15 @@ test <- dataca[-train_ind, ]
 
 ```{r}
 set.seed(1234)
-rf <-randomForest(has_misuse~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE + HELP_SUB_USE + PAIN_CHRONIC + PAIN_ACUTE + MENT_NONE,data=train, ntree=500) 
+rf_ca <-randomForest(has_misuse~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE + HELP_SUB_USE + PAIN_CHRONIC + PAIN_ACUTE + MENT_NONE,data=train, ntree=500) 
 
-print(rf)
-importance(rf)
-varImpPlot(rf)
+print(rf_ca)
+importance(rf_ca)
+varImpPlot(rf_ca)
 ```
 
 ```{r}
-pred1=predict(rf,type = "prob")
+pred1=predict(rf_ca,type = "prob")
 perf = prediction(pred1[,2], train$has_misuse)
 # 1. Area under curve
 auc = performance(perf, "auc")
@@ -236,7 +230,7 @@ pred3 = performance(perf, "tpr","fpr")
 plot(pred3,main="ROC Curve for Random Forest",col=2,lwd=2)
 abline(a=0,b=1,lwd=2,lty=2,col="gray")
 
-pred <- predict(rf, newdata=test)
+pred <- predict(rf_ca, newdata=test)
 confusionMatrix(pred,test$has_misuse)
 ```
 
