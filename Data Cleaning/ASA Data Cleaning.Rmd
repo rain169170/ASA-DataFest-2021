@@ -124,6 +124,9 @@ dataca$THC_NMU[is.na(dataca$THC_NMU)] <- 0
 dataca1 <- dataca %>%
   mutate(total_misuse =FENT_NMU + BUP_NMU + METH_NMU + MORPH_NMU + OXY_NMU + OXYM_NMU + TRAM_NMU + TAP_NMU + COD_NMU + COTC_NMU + HYD_NMU + HYDM_NMU + SUF_NMU + STIM_NMU +  BENZ_NMU + THC_NMU)
 
+dataca1 <- dataca1 %>% mutate(has_misuse = ifelse(total_misuse >= 1, 1, 0))
+dataca1$has_misuse <- as.factor(dataca1$has_misuse)
+
 
 write.csv(dataca1, "./CA_total_misuse.csv")
 ```

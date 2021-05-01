@@ -254,6 +254,32 @@ ggsave("Total Misuse by Income Level by Gender2.png", incomegender)
 ```
 
 ```{r}
+dataca_totalmisuse$has_misuse
+
+incomef <- dataca_totalmisuse %>% filter(DEM_GENDER == "Female") %>%
+  ggplot(aes(x=DEM_INCOME, y=has_misuse))+ ylim(0, 15) +
+  geom_count(color = "chocolate2")+scale_size_area(max_size = 8)+
+  ggtitle("Total Misuse by income for Female") + xlab("Income")+
+  theme_light()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+dataca_totalmisuse %>%
+  ggplot() + geom_bar(aes(x=DEM_INCOME, fill=DEM_GENDER), color="#e9ecef", alpha=0.6, position = 'identity') +scale_fill_manual(values=c("chocolate2", "steelblue")) + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) 
+
+dataca_totalmisuse %>%
+  ggplot() + geom_bar(aes(x=DEM_INCOME, fill=DEM_GENDER), color="#e9ecef", alpha=0.6, position = 'identity') +scale_fill_manual(values=c("chocolate2", "steelblue")) + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) + ggtitle("Number of people in each income group vs. \nNumber of people who has misused drugs") + ylab("Number of people in each income group by gender")
+
+dataca_totalmisuse %>%
+  ggplot() + geom_bar(aes(x=DEM_INCOME), fill="steelblue", alpha=0.6, position = 'identity') +scale_fill_manual(values= "steelblue") + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) 
+
+dat_misuse <- dataca_totalmisuse %>% group_by(DEM_INCOME) %>% summarise(misuse = sum(has_misuse))
+
+dat_misuse %>%
+  ggplot()+ geom_line(aes(x= DEM_INCOME, y = misuse), group = 1)
+incomef
+```
+
+
+```{r}
 #Pregnancy
 total_preg <- dataca_totalmisuse %>% filter(DEM_GENDER == "Female") %>%
   ggplot(aes(x=DEM_PREG, y=total_misuse))+ ylim(0, 15) +
