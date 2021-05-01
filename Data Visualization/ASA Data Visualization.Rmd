@@ -266,7 +266,7 @@ dataca_totalmisuse %>%
   ggplot() + geom_bar(aes(x=DEM_INCOME, fill=DEM_GENDER), color="#e9ecef", alpha=0.6, position = 'identity') +scale_fill_manual(values=c("chocolate2", "steelblue")) + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) 
 
 dataca_totalmisuse %>%
-  ggplot() + geom_bar(aes(x=DEM_INCOME, fill=DEM_GENDER), color="#e9ecef", alpha=0.6, position = 'identity') +scale_fill_manual(values=c("chocolate2", "steelblue")) + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) + ggtitle("Number of people in each income group vs. \nNumber of people who has misused drugs") + ylab("Number of people in each income group by gender")
+  ggplot() + geom_bar(aes(x=DEM_INCOME, fill=DEM_GENDER), position = position_dodge(), alpha=0.6) +scale_fill_manual(values=c("chocolate2", "steelblue")) + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) + ggtitle("Number of people in each income group vs. \nNumber of people who has misused drugs") + ylab("Number of people in each income group by gender")
 
 dataca_totalmisuse %>%
   ggplot() + geom_bar(aes(x=DEM_INCOME), fill="steelblue", alpha=0.6, position = 'identity') +scale_fill_manual(values= "steelblue") + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) 
@@ -328,17 +328,6 @@ totgender<- dataca_totalmisuse %>% ggplot(aes(total_misuse,colour = DEM_GENDER))
 l <- ggplotly(totgender)
 htmlwidgets::saveWidget(l, "index.html")
 ```
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
 
 
 ```{r}
@@ -474,9 +463,50 @@ hist((dataca %>% filter(BENZ_NMU =="1"))$DEM_AGE10,main="BENZ",xlab="Age",ylim=c
 hist((dataca %>% filter(THC_NMU =="1"))$DEM_AGE10,main="THC",xlab="Age",ylim=c(0,80))
 ```
 
+```{r}
+dataca$healthcpi
+```
 
 
+```{r}
+datcpi <- dataca_totalmisuse %>% group_by(DEM_LOCATION) %>% summarise(cpi = mean(healthcpi), prop_misuse = sum(has_misuse)/n()) %>% filter(prop_misuse > 0.01)
 
+ggplot(datcpi, aes(cpi, prop_misuse)) +
+  geom_smooth(method="lm") +
+  geom_point(size=3) +
+  theme_bw() + 
+  xlab("cpi") +
+  ylab("proportion of people who have misused drugs") +
+  ggtitle("Proportion of people who have misused drugs vs. CPI") + 
+  expand_limits(y=0) 
+
+```
+
+```{r}
+datcsi <- dataca_totalmisuse %>% group_by(DEM_LOCATION) %>% summarise(csi = mean(csi), prop_misuse = sum(has_misuse)/n()) %>% filter(prop_misuse > 0.01)
+
+ggplot(datcsi, aes(csi, prop_misuse)) +
+  geom_smooth(method="lm") +
+  geom_point(size=3) +
+  theme_bw() + 
+  xlab("csi") +
+  ylab("proportion of people who have misused drugs") +
+  ggtitle("Proportion of people who have misused drugs vs. ") 
+
+```
+
+```{r}
+dathealthcare_pctg <- dataca_totalmisuse %>% group_by(DEM_LOCATION) %>% summarise(healthcare_pctg = mean(healthcare_pctg), prop_misuse = sum(has_misuse)/n()) %>% filter(prop_misuse > 0.01)
+
+ggplot(dathealthcare_pctg, aes(healthcare_pctg, prop_misuse, color = DEM_LOCATION, group = 1)) +
+  geom_smooth(method="lm") +
+  geom_point(size=3) +
+  theme_bw() + 
+  xlab("healthcare_pctg") +
+  ylab("proportion of people who have misused drugs") +
+  ggtitle("Proportion of people who have misused drugs vs healthcare_pctg") 
+
+```
 
 
 

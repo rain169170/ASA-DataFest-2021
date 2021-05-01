@@ -30,6 +30,53 @@ table(dataca$DEM_GENDER)
 ```
 
 ```{r}
+#from statsCan, Dec2016
+dataca <-dataca%>%
+  mutate(healthcpi=case_when(DEM_LOCATION=="1" ~ 114.7,
+                             DEM_LOCATION=="2" ~ 116.8,
+                             DEM_LOCATION=="3" ~ 116,
+                             DEM_LOCATION=="4" ~ 113.8,
+                             DEM_LOCATION=="5" ~ 123.6,
+                             DEM_LOCATION=="6" ~ 126.6,
+                             DEM_LOCATION=="7" ~ 118.1,
+                             DEM_LOCATION=="8" ~ 119.2,
+                             DEM_LOCATION=="9" ~ 142.6,
+                             DEM_LOCATION=="10" ~ 119.8,
+                             DEM_LOCATION=="11" ~ 125.2,
+                             DEM_LOCATION=="12" ~ 125.2,
+                             DEM_LOCATION=="13" ~ 117.6))
+
+#from statsCan, 2017
+dataca <-dataca%>%
+  mutate(csi=case_when(DEM_LOCATION=="1" ~ 63.51,
+                       DEM_LOCATION=="2" ~ 66.26,
+                       DEM_LOCATION=="3" ~ 45.86,
+                       DEM_LOCATION=="4" ~ 68.74,
+                       DEM_LOCATION=="5" ~ 57.82,
+                       DEM_LOCATION=="6" ~ 56.34,
+                       DEM_LOCATION=="7" ~ 119.01,
+                       DEM_LOCATION=="8" ~ 143.1,
+                       DEM_LOCATION=="9" ~ 112,
+                       DEM_LOCATION=="10" ~ 87.23,
+                       DEM_LOCATION=="11" ~ 183.56,
+                       DEM_LOCATION=="12" ~ 300.43,
+                       DEM_LOCATION=="13" ~ 309.36))
+
+#from statsCan, 2017
+dataca <-dataca%>%
+  mutate(healthcare_pctg=case_when(DEM_LOCATION=="1" ~ 87,
+                       DEM_LOCATION=="2" ~ 86.2,
+                       DEM_LOCATION=="3" ~ 82.4,
+                       DEM_LOCATION=="4" ~ 91.9,
+                       DEM_LOCATION=="5" ~ 78.5,
+                       DEM_LOCATION=="6" ~ 90.1,
+                       DEM_LOCATION=="7" ~ 83.9,
+                       DEM_LOCATION=="8" ~ 81.4,
+                       DEM_LOCATION=="9" ~ 83.7,
+                       DEM_LOCATION=="10" ~ 82,
+                       DEM_LOCATION=="11" ~ 78.8,
+                       DEM_LOCATION=="12" ~ 13.9,
+                       DEM_LOCATION=="13" ~ 37.3))
 
 
 # Label gender based on the given number in the source data
@@ -84,10 +131,11 @@ dataca$DEM_PREG[dataca$DEM_PREG == 0] <- "Not pregnant"
 # As.factor some variables
 dataca$DEM_EDU <- as.factor(dataca$DEM_EDU)
 
+
 ```
 
 ```{r}
-
+dataca$healthcpi
 ```
 
 
