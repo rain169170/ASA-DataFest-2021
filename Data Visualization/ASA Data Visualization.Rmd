@@ -265,11 +265,15 @@ incomef <- dataca_totalmisuse %>% filter(DEM_GENDER == "Female") %>%
 dataca_totalmisuse %>%
   ggplot() + geom_bar(aes(x=DEM_INCOME, fill=DEM_GENDER), color="#e9ecef", alpha=0.6, position = 'identity') +scale_fill_manual(values=c("chocolate2", "steelblue")) + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) 
 
-dataca_totalmisuse %>%
-  ggplot() + geom_bar(aes(x=DEM_INCOME, fill=DEM_GENDER), position = position_dodge(), alpha=0.6) +scale_fill_manual(values=c("chocolate2", "steelblue")) + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) + ggtitle("Number of people in each income group vs. \nNumber of people who has misused drugs") + ylab("Number of people in each income group by gender")
+dataca_totalmisuse$DEM_INCOME <- factor(dataca_totalmisuse$DEM_INCOME, levels = c("<20,000", "20,000-39,999", "40,000-59,999", "60,000-79,999", "80,000-99,999", "100,000-119,999", "120,000-139,999", "140,000-159,999",">160,000"))
 
-dataca_totalmisuse %>%
-  ggplot() + geom_bar(aes(x=DEM_INCOME), fill="steelblue", alpha=0.6, position = 'identity') +scale_fill_manual(values= "steelblue") + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) 
+level_order <- c("<20,000", "20,000-39,999", "40,000-59,999", "60,000-79,999", "80,000-99,999", "100,000-119,999", "120,000-139,999", "140,000-159,999",">160,000")
+
+
+dataca_totalmisuse %>%filter(DEM_INCOME != "prefer not say") %>%
+  ggplot() + geom_bar(aes(x=factor(DEM_INCOME, level = level_order), fill=DEM_GENDER), position = position_dodge(), alpha=0.6) +scale_fill_manual(values=c("chocolate2", "steelblue")) + geom_line(data = dat_misuse, aes(x= DEM_INCOME, y = misuse), size = 1.5,  group = 1) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(fill="") + scale_y_continuous(sec.axis = sec_axis(~./3, name = "Number of people who has misused drugs")) + ggtitle("Number of people in each income group vs. \nNumber of people who has misused drugs") + ylab("Number of people in each income group by gender")
+
+ 
 
 dat_misuse <- dataca_totalmisuse %>% group_by(DEM_INCOME) %>% summarise(misuse = sum(has_misuse))
 

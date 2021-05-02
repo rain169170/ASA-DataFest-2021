@@ -20,7 +20,7 @@ library(ROCR)
 
 ##data
 ```{r,message=FALSE}
-dataca <- read_csv("ca.csv")
+dataca <- read_csv("./Source Data/CA-Data/ca.csv")
 attach(dataca)
 head(dataca)
 ```
