@@ -24,7 +24,6 @@ dataca <- read_csv("./Source Data/CA-Data/ca.csv")
 attach(dataca)
 head(dataca)
 ```
-
 ```{r}
 useFENT <- na.omit(dataca$FENT_NMU) 
 propFENT <- sum(useFENT == "1")/length(useFENT)
@@ -81,12 +80,15 @@ drugs <- c('FENT', 'BUP','METH', 'MORPH', 'OXY', 'OXYM', 'TRAM', 'TAP', 'COD', '
  
 prop_misuse <- data.frame(drugs,prop)
 
-plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) +
+plot_misuse<- ggplot(data=prop_misuse, aes(x=drugs, y=prop)) + 
   geom_bar(stat="identity", width=0.5) + 
   labs(title="Proportion of Misuse by Drug Type in Canada",
-        x ="Drug Type", y = "Proportion of Misuse")
+        x ="Drug Type", y = "Proportion of Misuse") + theme_classic() + scale_color_manual(values=c("chocolate2"))+
+  scale_fill_manual(values=c("steelblue"))
 
 plot_misuse
+
+
 ```
 
 ```{r}
@@ -110,12 +112,13 @@ dataca$THC_NMU[is.na(dataca$THC_NMU)] <- 0
 dataca <- dataca %>%
   mutate(total_misuse =FENT_NMU + BUP_NMU + METH_NMU + MORPH_NMU + OXY_NMU + OXYM_NMU + TRAM_NMU + TAP_NMU + COD_NMU + COTC_NMU + HYD_NMU + HYDM_NMU + SUF_NMU + STIM_NMU +  BENZ_NMU + THC_NMU)
 hist(dataca$total_misuse)
-boxplot(dataca$total_misuse)
+boxplot(dataca$total_misuse,main="Boxplot of Total Misuses in Canada")
 summary(dataca$total_misuse)
 ```
 
 ##modelling
 ```{r}
+dataca$DEM_AGE10<- as.factor(dataca$DEM_AGE10)
 dataca$DEM_GENDER <- as.factor(dataca$DEM_GENDER)
 dataca$DEM_ABOR <- as.factor(dataca$DEM_ABOR)
 dataca$DEM_LOCATION <- as.factor(dataca$DEM_LOCATION)
@@ -126,9 +129,12 @@ dataca$ALC_FREQ_USE <- as.factor(dataca$ALC_FREQ_USE)
 dataca$TOB_FREQ_USE <- as.factor(dataca$TOB_FREQ_USE)
 dataca$OTH_RX_DRUG_USE <- as.factor(dataca$OTH_RX_DRUG_USE)
 
-
-model1 <- glm(total_misuse ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE, family=poisson, data = dataca)
+model1 <- lm(total_misuse ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE, data = dataca)
 summary(model1)
+
+
+#model1 <- glm(total_misuse ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE, family=poisson, data = dataca)
+#summary(model1)
 #sig var include age, abor, location (all besides NB, Nunavut and Northwest), marital (common law and seperated), income (160,000 or more and refer not to say), edu (trade and uni below bachelor)
 
 #male more misuse 
@@ -152,17 +158,19 @@ summary(model1)
 #dataca$PAIN_CHRONIC <- as.factor(dataca$PAIN_CHRONIC)
 #dataca$PAIN_ACUTE <- as.factor(dataca$PAIN_ACUTE)
 
-model2 <- glm(total_misuse ~ DEM_PREG + DEM_HEALTH + HEALTH_RX + HELP_SUB_USE + DRSHOP_NMU + DRSHOP_SELL + HPC_USE + HPC_SELL, family=poisson, data = dataca)
+model2 <- lm(total_misuse ~ DEM_PREG + DEM_HEALTH + HEALTH_RX + HELP_SUB_USE + DRSHOP_NMU + DRSHOP_SELL + HPC_USE + HPC_SELL, data = dataca)
+#model2 <- glm(total_misuse ~ DEM_PREG + DEM_HEALTH + HEALTH_RX + HELP_SUB_USE + DRSHOP_NMU + DRSHOP_SELL + HPC_USE + HPC_SELL, family=poisson, data = dataca)
 summary(model2)
 #only help_sub_use sig, it significantly increases misuses 
 ```
 
 ```{r}
-model3 <- glm(total_misuse ~ PAIN_CHRONIC + PAIN_ACUTE + MENT_ANX + MENT_ADHD + MENT_AUT + MENT_BIP + MENT_BPD + MENT_DEP + MENT_EAT + MENT_OCD + MENT_PANIC + MENT_PPD + MENT_PTSD + MENT_SCH + MENT_OTH + MENT_NONE, family=poisson, data = dataca)
+model3 <- lm(total_misuse ~ PAIN_CHRONIC + PAIN_ACUTE + MENT_ANX + MENT_ADHD + MENT_AUT + MENT_BIP + MENT_BPD + MENT_DEP + MENT_EAT + MENT_OCD + MENT_PANIC + MENT_PPD + MENT_PTSD + MENT_SCH + MENT_OTH + MENT_NONE, data = dataca)
+#model3 <- glm(total_misuse ~ PAIN_CHRONIC + PAIN_ACUTE + MENT_ANX + MENT_ADHD + MENT_AUT + MENT_BIP + MENT_BPD + MENT_DEP + MENT_EAT + MENT_OCD + MENT_PANIC + MENT_PPD + MENT_PTSD + MENT_SCH + MENT_OTH + MENT_NONE, family=poisson, data = dataca)
 summary(model3)
 ```
 ##visualization
-```{r}
+```{r,eval=FALSE}
 dataca %>% 
   ggplot(aes(x=location, y=total_misuse, col=gender))+
   geom_point()+
@@ -183,8 +191,12 @@ dataca %>%
   geom_point()+
   theme_light()
 
+dataca$DEM_GENDER[dataca$DEM_GENDER == 1] <- "Male"
+dataca$DEM_GENDER[dataca$DEM_GENDER == 2] <- "Female"
+dataca$total_misuse <- as.factor(dataca$total_misuse)
+
 dataca%>%
-  select(DEM_AGE10,DEM_GENDER)%>%
+  select(total_misuse,DEM_GENDER)%>%
   tbl_summary(by=DEM_GENDER)%>%
   modify_header(label ~ "**Variable**")
 
@@ -208,7 +220,7 @@ test <- dataca[-train_ind, ]
 
 ```{r}
 set.seed(1234)
-rf_ca <-randomForest(has_misuse~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE + HELP_SUB_USE + PAIN_CHRONIC + PAIN_ACUTE + MENT_NONE,data=train, ntree=500) 
+rf_ca <-randomForest(has_misuse~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_LOCATION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE + HELP_SUB_USE + PAIN_CHRONIC + PAIN_ACUTE + MENT_NONE,data=dataca, ntree=500) 
 
 print(rf_ca)
 importance(rf_ca)
@@ -217,19 +229,36 @@ varImpPlot(rf_ca)
 
 ```{r}
 pred1=predict(rf_ca,type = "prob")
-perf = prediction(pred1[,2], train$has_misuse)
+perf = prediction(pred1[,2], dataca$has_misuse)
 # 1. Area under curve
 auc = performance(perf, "auc")
 #auc
 # 2. True Positive and Negative Rate
 pred3 = performance(perf, "tpr","fpr")
 # 3. Plot the ROC curve
-plot(pred3,main="ROC Curve for Random Forest",col=2,lwd=2)
+plot(pred3,main="ROC Curve for Random Forest for CA",col=2,lwd=2)
 abline(a=0,b=1,lwd=2,lty=2,col="gray")
 
 pred <- predict(rf_ca, newdata=test)
 confusionMatrix(pred,test$has_misuse)
 ```
+
+```{r,eval=FALSE}
+trControl <- trainControl(method = "cv",
+    number = 10,
+    search = "grid")
+
+rf_default <- train(has_misuse~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_REGION + DEM_MARITAL + DEM_INCOME + DEM_EDU + ALC_FREQ_USE + TOB_FREQ_USE + OTH_RX_DRUG_USE + HELP_SUB_USE + PAIN_CHRONIC + PAIN_ACUTE + MENT_NONE,data=train,
+    method = "rf",
+    metric = "Accuracy",
+    trControl = trControl)
+
+prediction <-predict(rf_default, test)
+confusionMatrix(prediction, test$has_misuse)
+```
+
+
+
 
 
 ##see which people tend do use a specific drug 
@@ -275,19 +304,55 @@ hist((dataca %>% filter(THC_NMU =="1"))$DEM_AGE10,main="THC",xlab="Age",ylim=c(0
 ## which type of people are more likely to misuse which drugs 
 ```{r}
 dataca <- dataca %>%
-  mutate(use_pr=ifelse(FENT_NMU == "1" | BUP_NMU == "1"| METH_NMU == "1"| MORPH_NMU == "1"| OXY_NMU == "1"| OXYM_NMU == "1"| TRAM_NMU == "1"| TAP_NMU == "1"| COD_NMU == "1"| COTC_NMU == "1"| HYD_NMU == "1"| HYDM_NMU == "1"| SUF_NMU == "1",1,0)) %>%
-  mutate(use_stim=ifelse(STIM_NMU == "1" | BENZ_NMU == "1"| THC_NMU == "1",1,0))
+  mutate(misuse_pr=ifelse(FENT_NMU == "1" | BUP_NMU == "1"| METH_NMU == "1"| MORPH_NMU == "1"| OXY_NMU == "1"| OXYM_NMU == "1"| TRAM_NMU == "1"| TAP_NMU == "1"| HYD_NMU == "1"| HYDM_NMU == "1"| SUF_NMU == "1",1,0)) %>%
+  mutate(misuse_co=ifelse(COD_NMU == "1"| COTC_NMU == "1",1,0))%>%
+  mutate(misuse_others=ifelse(STIM_NMU == "1" | BENZ_NMU == "1"| THC_NMU == "1",1,0))
 
-dataca$use_pr <- as.factor(dataca$use_pr)
-dataca$use_stim <- as.factor(dataca$use_stim)
+dataca$misuse_pr <- as.factor(dataca$misuse_pr)
+dataca$misuse_co <- as.factor(dataca$misuse_co)
+dataca$misuse_others <- as.factor(dataca$misuse_others)
 
-model4 <- glm(use_pr ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_EDU + DEM_LOCATION +DEM_INCOME, data=dataca,family="binomial")
+model4 <- glm(misuse_pr ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_EDU + DEM_LOCATION +DEM_INCOME, data=dataca,family="binomial")
 summary(model4)
 
-model5 <- glm(use_stim ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_EDU + DEM_LOCATION + DEM_INCOME, data=dataca,family="binomial")
+model5 <- glm(misuse_co ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_EDU + DEM_LOCATION +DEM_INCOME, data=dataca,family="binomial")
 summary(model5)
 
+model6 <- glm(misuse_others ~ DEM_GENDER + DEM_AGE10 + DEM_ABOR + DEM_EDU + DEM_LOCATION + DEM_INCOME, data=dataca,family="binomial")
+summary(model6)
+
 ```
+```{r}
+
+dataca <- dataca %>%
+  mutate(use_pr=ifelse(FENT_USE == "1" | BUP_USE == "1"| METH_USE == "1"| MORPH_USE == "1"| OXY_USE == "1"| OXYM_USE == "1"| TRAM_USE == "1"| TAP_USE == "1"| HYD_USE == "1"| HYDM_USE == "1"| SUF_USE == "1",1,0)) %>%
+  mutate(use_co=ifelse(COD_USE == "1",1,0))%>%
+  mutate(use_others=ifelse(STIM_USE == "1" | BENZ_USE == "1"| THC_USE == "1",1,0))
+
+
+proppr <- sum(dataca$misuse_pr == "1")/sum(dataca$use_pr == "1")
+propco <- sum(dataca$misuse_co == "1")/sum(dataca$use_co == "1")
+propother <- sum(dataca$misuse_others == "1")/sum(dataca$use_others == "1")
+
+
+newprop <- c(proppr, propco, propother)
+drugtype <- c('Pain Reliever', 'Codeine', 'Others')
+
+ 
+prop_type <- data.frame(drugtype,newprop)
+
+plot_type <- ggplot(data=prop_type, aes(x=drugtype, y=newprop)) + 
+  geom_bar(stat="identity", width=0.5) + 
+  labs(title="Proportion of Misuse by Three Drug Types",
+        x ="Drug Type", y = "Proportion of Misuse") + theme_classic() + scale_color_manual(values=c("chocolate2"))+
+  scale_fill_manual(values=c("steelblue"))
+
+plot_type
+```
+
+
+
+
 
 ##which drugs are often misused together 
 ```{r,message=FLASE}
@@ -306,10 +371,110 @@ corrplot(res, type = "upper", order = "hclust",
 
 ```
 
+```{r,eval=FALSE}
+drugs <- c('FENT', 'BUP','METH', 'MORPH', 'OXY', 'OXYM', 'TRAM', 'TAP', 'COD', 'COTC', 'HYD', 'HYDM', 'SUF', 'STIM', 'BENZ', 'THC')  
+propmisuse_geo <- dataca %>% group_by(DEM_LOCATION) %>% summarise(FENT = sum(na.omit(FENT_NMU))/length(na.omit(FENT_NMU)), BUP = sum(na.omit(BUP_NMU))/length(na.omit(BUP_NMU)), METH = sum(na.omit(METH_NMU))/length(na.omit(METH_NMU)), MORPH = sum(na.omit(MORPH_NMU))/length(na.omit(MORPH_NMU)), OXY = sum(na.omit(OXY_NMU))/length(na.omit(OXY_NMU)), OXYM = sum(na.omit(OXYM_NMU))/length(na.omit(OXYM_NMU)), TRAM = sum(na.omit(TRAM_NMU))/length(na.omit(TRAM_NMU)), TAP = sum(na.omit(TAP_NMU))/length(na.omit(TAP_NMU)), COD = sum(na.omit(COD_NMU))/length(na.omit(COD_NMU)), COTC = sum(na.omit(COTC_NMU))/length(na.omit(COTC_NMU)), HYD = sum(na.omit(HYD_NMU))/length(na.omit(HYD_NMU)),HYDM = sum(na.omit(HYDM_NMU))/length(na.omit(HYDM_NMU)),SUF = sum(na.omit(SUF_NMU))/length(na.omit(SUF_NMU)),STIM = sum(na.omit(STIM_NMU))/length(na.omit(STIM_NMU)),BENZ = sum(na.omit(BENZ_NMU))/length(na.omit(BENZ_NMU)),THC = sum(na.omit(THC_NMU))/length(na.omit(THC_NMU)))
+propmisuse_geo$FENT[is.na(propmisuse_geo$FENT)] <- 0
+propmisuse_geo$BUP[is.na(propmisuse_geo$BUP)] <- 0
+propmisuse_geo$METH[is.na(propmisuse_geo$METH)] <- 0
+propmisuse_geo$MORPH[is.na(propmisuse_geo$MORPH)] <- 0
+propmisuse_geo$OXY[is.na(propmisuse_geo$OXY)] <- 0
+propmisuse_geo$OXYM[is.na(propmisuse_geo$OXYM)] <- 0
+propmisuse_geo$TRAM[is.na(propmisuse_geo$TRAM)] <- 0
+propmisuse_geo$TAP[is.na(propmisuse_geo$TAP)] <- 0
+propmisuse_geo$COD[is.na(propmisuse_geo$COD)] <- 0
+propmisuse_geo$COTC[is.na(propmisuse_geo$COTC)] <- 0
+propmisuse_geo$HYD[is.na(propmisuse_geo$HYD)] <- 0
+propmisuse_geo$HYDM[is.na(propmisuse_geo$HYDM)] <- 0
+propmisuse_geo$SUF[is.na(propmisuse_geo$SUF)] <- 0
+propmisuse_geo$STIM[is.na(propmisuse_geo$STIM)] <- 0
+propmisuse_geo$BENZ[is.na(propmisuse_geo$BENZ)] <- 0
+propmisuse_geo$THC[is.na(propmisuse_geo$THC)] <- 0
+propmisuse_geo
+```
+```{r,eval=FALSE}
+prop_geo <- dataca %>% group_by(DEM_LOCATION) %>% summarise(prop=sum(total_misuse)/length(total_misuse))
+#test <- dataca %>% filter(DEM_LOCATION=="12")
+
+prop_geo$csi <- c(63.51,66.26,45.86, 68.74,57.82, 56.34,119.01,143.1,112,87.23,300.43,309.36)
+plot(prop_geo$prop,prop_geo$csi)
+```
 
 
 
+```{r}
+#from statsCan, Dec2016
+dataca <-dataca%>%
+  mutate(healthcpi=case_when(DEM_LOCATION=="1" ~ 114.7,
+                             DEM_LOCATION=="2" ~ 116.8,
+                             DEM_LOCATION=="3" ~ 116,
+                             DEM_LOCATION=="4" ~ 113.8,
+                             DEM_LOCATION=="5" ~ 123.6,
+                             DEM_LOCATION=="6" ~ 126.6,
+                             DEM_LOCATION=="7" ~ 118.1,
+                             DEM_LOCATION=="8" ~ 119.2,
+                             DEM_LOCATION=="9" ~ 142.6,
+                             DEM_LOCATION=="10" ~ 119.8,
+                             DEM_LOCATION=="11" ~ 125.2,
+                             DEM_LOCATION=="12" ~ 125.2,
+                             DEM_LOCATION=="13" ~ 117.6))
 
+#from statsCan, 2017
+dataca <-dataca%>%
+  mutate(csi=case_when(DEM_LOCATION=="1" ~ 63.51,
+                       DEM_LOCATION=="2" ~ 66.26,
+                       DEM_LOCATION=="3" ~ 45.86,
+                       DEM_LOCATION=="4" ~ 68.74,
+                       DEM_LOCATION=="5" ~ 57.82,
+                       DEM_LOCATION=="6" ~ 56.34,
+                       DEM_LOCATION=="7" ~ 119.01,
+                       DEM_LOCATION=="8" ~ 143.1,
+                       DEM_LOCATION=="9" ~ 112,
+                       DEM_LOCATION=="10" ~ 87.23,
+                       DEM_LOCATION=="11" ~ 183.56,
+                       DEM_LOCATION=="12" ~ 300.43,
+                       DEM_LOCATION=="13" ~ 309.36))
+
+#from statsCan, 2017
+dataca <-dataca%>%
+  mutate(healthcare_pctg=case_when(DEM_LOCATION=="1" ~ 87,
+                       DEM_LOCATION=="2" ~ 86.2,
+                       DEM_LOCATION=="3" ~ 82.4,
+                       DEM_LOCATION=="4" ~ 91.9,
+                       DEM_LOCATION=="5" ~ 78.5,
+                       DEM_LOCATION=="6" ~ 90.1,
+                       DEM_LOCATION=="7" ~ 83.9,
+                       DEM_LOCATION=="8" ~ 81.4,
+                       DEM_LOCATION=="9" ~ 83.7,
+                       DEM_LOCATION=="10" ~ 82,
+                       DEM_LOCATION=="11" ~ 78.8,
+                       DEM_LOCATION=="12" ~ 13.9,
+                       DEM_LOCATION=="13" ~ 37.3))
+                            
+model9<-glm(has_misuse~DEM_AGE10+DEM_GENDER+DEM_EDU+ DEM_ABOR+ DEM_INCOME + healthcpi + csi +healthcare_pctg,family="binomial",data=dataca)
+summary(model9)
+  
+  
+         
+         
+```
+
+
+
+```{r,eval=FALSE}
+dataca <- dataca%>% mutate(has_misuse = ifelse(total_misuse >= 1, 1, 0))
+geo <- dataca %>%
+  group_by(DEM_LOCATION)%>%
+  summarise(prop_misuse = sum(has_misuse)/n())
+
+csi <- c(63.51, 66.26, 45.86, 68.74, 57.82, 56.34, 119.01, 143.1, 112, 87.23)
+
+cpi <- c(114.7, 116.8, 116, 113.8, 123.6, 126.6, 118.1, 119.2, 142.6,119.8)
+
+healthp<-c(87,86.2,82.4,91.9,78.5,90.1,83.9,81.4,83.7,82)
+
+#plot(cpi,geo$prop_misuse)
+```
 
 
 
