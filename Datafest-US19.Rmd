@@ -1,0 +1,62 @@
+---
+title: "us19ana"
+author: "Jianlin Huang (1004144678)"
+date: "30/04/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library("glmmTMB")
+```
+
+```{r}
+us19 <- read_csv("./Data Cleaning/US19_Clean.csv")
+attach(us19)
+```
+```{r}
+us19 <- us19 %>%
+  mutate(ca_prop = ca_misuse/ca_use)
+us19 <- us19 %>%
+  mutate(st_prop = st_misuse/st_use)
+us19 <- us19 %>%
+  mutate(se_prop = se_misuse/se_use)
+us19 <- us19 %>%
+  mutate(pr_prop = pr_misuse/pr_use)
+```
+
+```{r}
+# Plot misuse rate
+par(mfrow=c(2,2))
+hist(us19$ca_prop, xlim = c(0.2, 1), ylim = c(0, 450), xlab="Misuse Rate", main = "Cannabinoids Misuse Distribution")
+hist(us19$st_prop, xlim = c(0.2, 1), ylim = c(0, 1100), xlab="Misuse Rate", main = "Stimulants Misuse Distribution")
+hist(us19$se_prop, xlim = c(0.2, 1), ylim = c(0, 1000), xlab="Misuse Rate", main = "Sedatives Misuse Distribution")
+hist(us19$pr_prop, xlim = c(0.2, 1), ylim = c(0, 1500), xlab="Misuse Rate", main = "Pain Reliever Misuse Distribution")
+```
+```{r}
+library(corrplot)
+temp = select(us19, ca_use, ca_misuse, st_use, st_misuse, se_use, se_misuse, pr_use, pr_misuse)
+corrplot(cor(temp), title="ca: cannabinoids; st: stimulants; se: sedatives; pr: pain relievers", mar=c(0,0,1,0))
+```
+
+```{r}
+# Calculate total misuse
+us19 <- us19 %>%
+  mutate(total_misuse = ca_misuse + st_misuse + se_misuse + pr_misuse)
+```
+
+```{r}
+# Try glmm model
+glmm_model = glmmTMB(total_misuse~DEM_AGE*DEM_GENDER+ca_misuse + st_misuse + se_misuse + pr_misuse +(1|DEM_STATE/DEM_ZIP),data =us19, family =poisson(link = "log"))
+```
+
+```{r}
+library(knitr)
+library(Pmisc)
+knitr::kable(summary(glmm_model)$coef$cond,digits =2)
+par(mar = c(4,2,4,2))
+par(oma = c(3, 3, 3, 3))
+Pmisc::ranefPlot(glmm_model,grpvar ="DEM_STATE",level =0.5,maxNames =20, xlab = "Difference to the standard level")
+title("Total Misuse Showcased by States", adj = 0.2, line = -1)
+```

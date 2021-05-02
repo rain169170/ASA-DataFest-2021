@@ -1,0 +1,97 @@
+---
+title: "US19_cleaning"
+author: "Jianlin Huang (1004144678)"
+date: "30/04/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+```
+
+```{r}
+# Read US19 data
+us19 = read_csv("../Source Data/US-Data/nmurx_us_19Q1.csv")
+```
+
+```{r}
+us19$DEM_GENDER[us19$DEM_GENDER == 1] <- "Male"
+us19$DEM_GENDER[us19$DEM_GENDER == 2] <- "Female"
+
+# Pain reliver
+us19$BHYD_NMU[is.na(us19$BHYD_NMU)] <- 0
+us19$BUP_NMU[is.na(us19$BUP_NMU)] <- 0
+us19$COD_NMU[is.na(us19$COD_NMU)] <- 0
+us19$DIHY_NMU[is.na(us19$DIHY_NMU)] <- 0
+us19$ELU_NMU[is.na(us19$ELU_NMU)] <- 0
+us19$FENT_NMU[is.na(us19$FENT_NMU)] <- 0
+us19$GAB_NMU[is.na(us19$GAB_NMU)] <- 0
+us19$HYD_NMU[is.na(us19$HYD_NMU)] <- 0
+us19$HYDM_NMU[is.na(us19$HYDM_NMU)] <- 0
+us19$KTM_NMU[is.na(us19$KTM_NMU)] <- 0
+us19$METH_NMU[is.na(us19$METH_NMU)] <- 0
+us19$MORPH_NMU[is.na(us19$MORPH_NMU)] <- 0
+us19$OXY_NMU[is.na(us19$OXY_NMU)] <- 0
+us19$OXYM_NMU[is.na(us19$OXYM_NMU)] <- 0
+us19$PREG_NMU[is.na(us19$PREG_NMU)] <- 0
+us19$SUF_NMU[is.na(us19$SUF_NMU)] <- 0
+us19$TAP_NMU[is.na(us19$TAP_NMU)] <- 0
+us19$TRAM_NMU[is.na(us19$TRAM_NMU)] <- 0
+
+# Sedative
+us19$ALP_NMU[is.na(us19$ALP_NMU)] <- 0
+us19$BAC_NMU[is.na(us19$BAC_NMU)] <- 0
+us19$CHL_NMU[is.na(us19$CHL_NMU)] <- 0
+us19$CLOB_NMU[is.na(us19$CLOB_NMU)] <- 0
+us19$CLON_NMU[is.na(us19$CLON_NMU)] <- 0
+us19$CLOR_NMU[is.na(us19$CLOR_NMU)] <- 0
+us19$DIA_NMU[is.na(us19$DIA_NMU)] <- 0
+us19$EST_NMU[is.na(us19$EST_NMU)] <- 0
+us19$ESZ_NMU[is.na(us19$ESZ_NMU)] <- 0
+us19$FLUR_NMU[is.na(us19$FLUR_NMU)] <- 0
+us19$LORA_NMU[is.na(us19$LORA_NMU)] <- 0
+us19$MID_NMU[is.na(us19$MID_NMU)] <- 0
+us19$OXA_NMU[is.na(us19$OXA_NMU)] <- 0
+us19$QUA_NMU[is.na(us19$QUA_NMU)] <- 0
+us19$TEM_NMU[is.na(us19$TEM_NMU)] <- 0
+us19$TRI_NMU[is.na(us19$TRI_NMU)] <- 0
+us19$ZAL_NMU[is.na(us19$ZAL_NMU)] <- 0
+us19$ZOL_NMU[is.na(us19$ZOL_NMU)] <- 0
+
+# Stimulants
+us19$AMPH_NMU[is.na(us19$AMPH_NMU)] <- 0
+us19$ATOM_NMU[is.na(us19$ATOM_NMU)] <- 0
+us19$MPHEN_NMU[is.na(us19$MPHEN_NMU)] <- 0
+us19$MOD_NMU[is.na(us19$MOD_NMU)] <- 0
+
+#Cannabinoids
+us19$CANN_NMU[is.na(us19$CANN_NMU)] <- 0
+us19$DRON_NMU[is.na(us19$DRON_NMU)] <- 0
+us19$NAB_NMU[is.na(us19$NAB_NMU)] <- 0
+```
+
+```{r}
+us19 <- us19 %>%
+  mutate(pr_misuse = BHYD_NMU + BUP_NMU + COD_NMU + DIHY_NMU + ELU_NMU + FENT_NMU + GAB_NMU + HYD_NMU + HYDM_NMU + KTM_NMU + METH_NMU + MORPH_NMU + OXY_NMU + OXYM_NMU + PREG_NMU + SUF_NMU + TAP_NMU + TRAM_NMU)
+us19 <- us19 %>%
+  mutate(se_misuse = ALP_NMU + BAC_NMU + CHL_NMU + CLOB_NMU + CLON_NMU + CLOR_NMU + DIA_NMU + EST_NMU + ESZ_NMU + FLUR_NMU + LORA_NMU + MID_NMU + OXA_NMU + QUA_NMU + TEM_NMU + TRI_NMU + ZAL_NMU + ZOL_NMU)
+us19 <- us19 %>%
+  mutate(st_misuse = AMPH_NMU + ATOM_NMU + MPHEN_NMU + MOD_NMU)
+us19 <- us19 %>%
+  mutate(ca_misuse = CANN_NMU + DRON_NMU + NAB_NMU)
+```
+
+```{r}
+us19 <- us19 %>%
+  mutate(pr_use = BHYD_USE + BUP_USE + COD_USE + DIHY_USE + ELU_USE + FENT_USE + GAB_USE + HYD_USE + HYDM_USE + KTM_USE + METH_USE + MORPH_USE + OXY_USE + OXYM_USE + PREG_USE + SUF_USE + TAP_USE + TRAM_USE)
+us19 <- us19 %>%
+  mutate(se_use = ALP_USE + BAC_USE + CHL_USE + CLOB_USE + CLON_USE + CLOR_USE + DIA_USE + EST_USE + ESZ_USE + FLUR_USE + LORA_USE + MID_USE + OXA_USE + QUA_USE + TEM_USE + TRI_USE + ZAL_USE + ZOL_USE)
+us19 <- us19 %>%
+  mutate(st_use = AMPH_USE + ATOM_USE + MPHEN_USE + MOD_USE)
+us19 <- us19 %>%
+  mutate(ca_use = CANN_USE + DRON_USE + NAB_USE)
+```
+
+```{r}
+write.csv(us19, "./US19_Clean.csv")
+```
